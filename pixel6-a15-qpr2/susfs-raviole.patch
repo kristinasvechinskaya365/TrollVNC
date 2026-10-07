@@ -1290,21 +1290,19 @@
  	}
  
  	start = vma->vm_start;
-@@ -866,6 +904,13 @@
- 
- static int show_smap(struct seq_file *m, void *v)
- {
-+
-+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
-+	struct vm_area_struct *susfs_vma = v;
-+	if (susfs_vma->vm_file &&
-+	    SUSFS_IS_INODE_SUS_MAP(file_inode(susfs_vma->vm_file)))
-+		return 0;
-+#endif
- 	struct vm_area_struct *pad_vma = get_pad_vma(v);
+@@ -870,6 +908,11 @@
  	struct vm_area_struct *vma = get_data_vma(v);
  	struct mem_size_stats mss;
-@@ -932,7 +977,14 @@
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_MAP
++	if (vma->vm_file && SUSFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file)))
++		return 0;
++#endif
++
+ 	memset(&mss, 0, sizeof(mss));
+ 
+ 	if (!vma_pages(vma))
+@@ -932,7 +975,14 @@
  
  	vma_start = vma->vm_start;
  	do {
@@ -1319,7 +1317,7 @@
  		last_vma_end = vma->vm_end;
  
  		/*
-@@ -995,7 +1047,14 @@
+@@ -995,7 +1045,14 @@
  
  			/* Case 4 above */
  			if (vma->vm_end > last_vma_end)
@@ -1334,7 +1332,7 @@
  		}
  		/* Case 2 above */
  	} while ((vma = mas_find(&mas, ULONG_MAX)) != NULL);
-@@ -1726,6 +1785,9 @@
+@@ -1726,6 +1783,9 @@
  	while (count && (start_vaddr < end_vaddr)) {
  		int len;
  		unsigned long end;
@@ -1344,7 +1342,7 @@
  
  		pm.pos = 0;
  		end = (start_vaddr + PAGEMAP_WALK_SIZE) & PAGEMAP_WALK_MASK;
-@@ -1735,7 +1797,15 @@
+@@ -1735,7 +1795,15 @@
  		ret = mmap_read_lock_killable(mm);
  		if (ret)
  			goto out_free;
@@ -2150,7 +2148,7 @@
  
  #include "kallsyms_internal.h"
  
-@@ -856,8 +859,36 @@
+@@ -856,8 +859,37 @@
  		seq_printf(m, "%px %c %s\t[%s]\n", value,
  			   type, iter->name, iter->module_name);
  	} else
@@ -2159,7 +2157,8 @@
  			   iter->type, iter->name);
 +#else
 +	{
-+		if (susfs_starts_with(iter->name, "ksu_") ||
++		if (susfs_starts_with(iter->name, "sukisu_") ||
++			susfs_starts_with(iter->name, "ksu_") ||
 +			susfs_starts_with(iter->name, "__ksu_") ||
 +			susfs_starts_with(iter->name, "susfs_") ||
 +			susfs_starts_with(iter->name, "ksud") ||

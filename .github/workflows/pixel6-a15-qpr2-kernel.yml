@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: pixel6-a15-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-22.04

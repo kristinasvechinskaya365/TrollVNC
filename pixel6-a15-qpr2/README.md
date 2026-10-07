@@ -25,6 +25,6 @@ Image is not a flashable boot.img; the exact Android 15 ROM's boot/vendor/DTBO
 compatibility and a physical boot + manager + KPM smoke test remain necessary.
 This kernel does not establish camera injection, depth or biometric liveness.
 
-Upstream source licenses apply: SukiSU Ultra GPL-3.0, Google Linux kernel GPL-2.0,
+Upstream source licenses apply: SukiSU Ultra GPL-2.0, Google Linux kernel GPL-2.0,
 SUSFS GPL-2.0 and KernelPatch GPL-2.0. Sources are fetched at recorded revisions;
 retain source manifests, integration patch and build scripts with distributions.
