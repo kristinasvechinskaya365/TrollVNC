@@ -32,6 +32,8 @@ those boot images are unqualified and must not be mistaken for a final KPM boot.
 See GOOGLE_A15_BASELINE.md for the exact production source lineage and
 compat/README.md for the pinned upstream header restoring the builtin branch’s
 missing architecture definitions.
+CORE_UAPI.md records the qualified core userspace API contract and the
+optional controls that this pinned source does not implement.
 Guarded source repairs align SUSFS hook types with builtin SukiSU and bound KPM
 user-copy/metadata/veneer allocations. Host regression tests execute repaired
 C with AddressSanitizer and UndefinedBehaviorSanitizer. These tests do not

@@ -21,7 +21,11 @@ for f in (src/'drivers/kernelsu/kpm').glob('*.c'):
 assert len(bridge)==12,'unexpected KPM bridge export set'
 needed=sorted(bridge)+['susfs_init']
 assert set(needed)<=symbols,sorted(set(needed)-symbols)
-report={'compiled_config':'PASS','required':required,'compiled_symbols':needed,
+header=(src/'drivers/kernelsu/include/uapi/supercall.h').read_text()
+assert 'DECLARE(__u32, KERNEL_SU_UAPI_VERSION, 5);' in header
+assert 'DECLARE(__u32, EVENT_SERVICES, 4);' in header
+assert 'DECLARE(__u32, KSU_GET_INFO_FLAG_BUNDLED, (1U << 4));' in header
+report={'compiled_config':'PASS','source_core_uapi':5,'required':required,'compiled_symbols':needed,
  'proc_symbol_hiding':'compiled; runtime not tested',
  'CFI':'compiled on; KernelPatch permits selected CFI exceptions for its allocations',
  'physical_boot':'NOT_YET_TESTED','KPM_runtime':'NOT_YET_TESTED'}

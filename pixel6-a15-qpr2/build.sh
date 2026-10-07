@@ -29,12 +29,23 @@ cp "$RECIPE/compat/arch.h" aosp/drivers/kernelsu/include/arch.h
 cp "$RECIPE/compat/README.md" "$OUT/sukisu-arch-provenance.md"
 python3 "$RECIPE/test-sukisu-kpm.py" KernelSU/kernel | tee "$OUT/sukisu-kpm-host-proof.txt"
 python3 "$RECIPE/repair-sukisu-kpm.py" aosp/drivers/kernelsu
+python3 "$RECIPE/test-sukisu-integration.py" KernelSU/kernel | tee "$OUT/sukisu-integration-host-proof.txt"
+python3 "$RECIPE/repair-sukisu-integration.py" aosp/drivers/kernelsu
+for source in include/uapi/supercall.h selinux/rules.c; do
+    diff -u "KernelSU/kernel/$source" "aosp/drivers/kernelsu/$source" >> "$OUT/sukisu-integration.patch" || [[ "$?" == 1 ]]
+done
 diff -u KernelSU/kernel/kpm/kpm.c aosp/drivers/kernelsu/kpm/kpm.c > "$OUT/sukisu-kpm-handler.patch" || [[ "$?" == 1 ]]
 diff -u KernelSU/kernel/kpm/super_access.c aosp/drivers/kernelsu/kpm/super_access.c > "$OUT/sukisu-kpm-struct.patch" || [[ "$?" == 1 ]]
-printf '\nobj-$(CONFIG_KSU) += kernelsu/\n' >> aosp/drivers/Makefile
 printf '\nsource "drivers/kernelsu/Kconfig"\n' >> aosp/drivers/Kconfig
 python3 - <<'PY'
 from pathlib import Path
+import re
+# Compile the SukiSU unity object before the remaining driver targets so
+# integration failures surface promptly while retaining the full kernel build.
+p=Path('aosp/drivers/Makefile');s=p.read_text()
+assert 'kernelsu/' not in s
+m=re.search(r'^obj-',s,re.M);assert m is not None
+p.write_text(s[:m.start()]+'obj-$(CONFIG_KSU) += kernelsu/\n'+s[m.start():])
 p=Path('aosp/drivers/kernelsu/Kconfig')
 s=p.read_text(); a=s.index('config KPM\n'); b=s.index('\nmenu ',a)
 block=s[a:b]
@@ -82,6 +93,7 @@ platform=Android 15 QPR2 source target
 manifest=reconstructed official topology with 80 stable project revisions pinned
 common_commit=3c76c2d71bb32039037c6f5dc38b172fe4142bdb
 sukisu_commit=$SUKISU_REF
+sukisu_core_uapi=5
 sukisu_arch_donor=42d7fda3d787b7df90fc440a50bb9c8216a3fdef:kernel/include/arch.h
 sukisu_arch_sha256=21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9
 susfs_commit=$SUSFS_REF
