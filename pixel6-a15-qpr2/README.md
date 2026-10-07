@@ -12,7 +12,9 @@ phone ROM fingerprint. The SUSFS patch adapts three context conflicts against
 the pinned Google kernel, retaining the intended hooks (including smaps).
 
 No prebuilt GKI substitution, CFI disabling, blanket symbol trimming disabling,
-or ABI-check suppression is used. The final compiled config must retain KPM's
+or ABI-check suppression is used. Twelve declared KPM bridge exports are added
+to a dedicated KMI allowlist; strict checks and symbol trimming remain enabled.
+The final compiled config must retain KPM's
 internal KALLSYMS_ALL and the SUSFS proc symbol hiding feature simultaneously.
 System.map must contain the real SukiSU bridge and SUSFS entry points. KPM
 bridge stubs require the mandatory post-build KernelPatch payload; configuration
@@ -21,6 +23,8 @@ not proof of runtime module loading on the phone.
 
 Artifacts include Image, config, full dist, resolved manifest, verification,
 postpatch inspection and provenance. No standalone KernelPatch key is published.
+The source-dist-before-kpm directory records Google build outputs before KPM;
+those boot images are unqualified and must not be mistaken for a final KPM boot.
 Image is not a flashable boot.img; the exact Android 15 ROM's boot/vendor/DTBO
 compatibility and a physical boot + manager + KPM smoke test remain necessary.
 This kernel does not establish camera injection, depth or biometric liveness.

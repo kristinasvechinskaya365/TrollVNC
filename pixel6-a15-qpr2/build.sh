@@ -35,8 +35,19 @@ p.write_text(s[:a]+block.replace('default n','default y')+s[b:])
 # Remove network-derived version labels: the source SHA is the version identity.
 p=Path('aosp/drivers/kernelsu/Makefile');s=p.read_text()
 a=s.index('git_short_sha    =');b=s.index('$(info -- $(REPO_NAME) version:',a)
-s=s[:a]+'KSU_VERSION := 13000\nKSU_VERSION_FULL := v4.2.0-70fa0e09@builtin\n'+s[b:]
+s=s[:a]+'KSU_VERSION := 37999\nKSU_VERSION_FULL := v4.2.0-70fa0e09@builtin\n'+s[b:]
 p.write_text(s)
+# Add only the twelve declared SukiSU KPM bridge exports to the KMI allowlist.
+# Keep strict mode and symbol trimming; do not bypass either check.
+import re
+exports=set()
+for f in Path('aosp/drivers/kernelsu/kpm').glob('*.c'):
+    exports.update(re.findall(r'EXPORT_SYMBOL\((\w+)\)',f.read_text()))
+assert len(exports)==12,sorted(exports)
+Path('aosp/android/abi_gki_aarch64_sukisu').write_text('[abi_symbol_list]\n'+''.join('  '+x+'\n' for x in sorted(exports)))
+p=Path('aosp/BUILD.bazel');s=p.read_text();anchor='        "android/abi_gki_aarch64_sunxi",\n'
+assert s.count(anchor)==1
+p.write_text(s.replace(anchor,'        "android/abi_gki_aarch64_sukisu",\n'+anchor,1))
 PY
 patch --dry-run --fuzz=0 -p1 -d aosp < "$RECIPE/susfs-raviole.patch"
 patch --fuzz=0 -p1 -d aosp < "$RECIPE/susfs-raviole.patch"

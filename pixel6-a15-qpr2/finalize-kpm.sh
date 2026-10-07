@@ -33,9 +33,12 @@ grep -qxF 'version=0xd00' /tmp/kpm-image-info-private.txt || die 'unexpected Ker
 printf 'patched=true\nversion=0xd00\n' > "$OUT/kpm-image-info.txt"
 rm -f /tmp/kpm-image-info-private.txt
 mv "$OUT/Image.tmp" "$OUT/Image"
+"$ROOT/work-pixel6-a15/aosp/scripts/extract-ikconfig" "$OUT/Image" > "$OUT/config.post-kpm"
+cmp "$OUT/config" "$OUT/config.post-kpm" || die 'KPM changed the embedded config'
 gzip -c "$OUT/Image" > "$OUT/Image.gz"
 cp "$PAYLOAD/proof.txt" "$OUT/kpm-payload-proof.txt"
 sha256sum "$OUT/Image.pre-kpm" "$OUT/Image" "$OUT/Image.gz" > "$OUT/SHA256SUMS"
+mv "$OUT/dist" "$OUT/source-dist-before-kpm"
 cat >> "$OUT/provenance.txt" <<EOF
 kpm_postpatch=PASS
 kpm_source=e565c93ff6d0b992d9dfcbd43533a49d744a5f23
@@ -44,4 +47,3 @@ kpm_runtime=NOT_YET_TESTED
 physical_boot=NOT_YET_TESTED
 EOF
 echo 'PIXEL6_A15_QPR2_KPM_POSTPATCH=PASS'
-

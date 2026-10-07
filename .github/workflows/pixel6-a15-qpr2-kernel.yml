@@ -27,25 +27,31 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends repo git python3 patch binutils build-essential curl unzip zip xz-utils zstd cpio libssl-dev libelf-dev cmake ninja-build
-      - name: Build pinned Pixel 6 kernel and verify features
-        run: bash pixel6-a15-qpr2/build.sh
       - name: Install NDK for KPM
         id: ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r29
           add-to-path: false
-      - name: Build and apply KPM payload
+      - name: Build and verify pinned KPM payload
         env:
           TARGET_COMPILE: ${{ steps.ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin
         run: |
           bash pixel6-a15-qpr2/build-kpm.sh
-          bash pixel6-a15-qpr2/finalize-kpm.sh
+      - name: Build pinned Pixel 6 kernel and verify features
+        run: |
+          set -o pipefail
+          bash pixel6-a15-qpr2/build.sh 2>&1 | tee kernel-build.log
+      - name: Apply and verify KPM in final Image
+        run: bash pixel6-a15-qpr2/finalize-kpm.sh
       - name: Upload kernel and verification evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: oriole-a15-sukisu-kpm-susfs23-${{ github.sha }}
-          path: output-pixel6-a15/
+          path: |
+            output-pixel6-a15/
+            output-pixel-kpm-farbranch/
+            kernel-build.log
           if-no-files-found: warn
           retention-days: 14
