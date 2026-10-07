@@ -1,0 +1,51 @@
+name: Pixel 6 A15 SukiSU KPM SUSFS 2.3
+on:
+  push:
+    branches: [ci/pixel6-a15-sukisu-kpm-susfs23-20261007]
+    paths: ['pixel6-a15-qpr2/**', '.github/workflows/pixel6-a15-qpr2-kernel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pixel6-a15-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk for Google Pixel source
+        uses: endersonmenezes/free-disk-space@v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends repo git python3 patch binutils build-essential curl unzip zip xz-utils zstd cpio libssl-dev libelf-dev cmake ninja-build
+      - name: Build pinned Pixel 6 kernel and verify features
+        run: bash pixel6-a15-qpr2/build.sh
+      - name: Install NDK for KPM
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r29
+          add-to-path: false
+      - name: Build and apply KPM payload
+        env:
+          TARGET_COMPILE: ${{ steps.ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin
+        run: |
+          bash pixel6-a15-qpr2/build-kpm.sh
+          bash pixel6-a15-qpr2/finalize-kpm.sh
+      - name: Upload kernel and verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oriole-a15-sukisu-kpm-susfs23-${{ github.sha }}
+          path: output-pixel6-a15/
+          if-no-files-found: warn
+          retention-days: 14

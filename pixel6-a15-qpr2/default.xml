@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='utf-8'?>
+<manifest>
+  <remote name="aosp" fetch="https://android.googlesource.com/" />
+  <default revision="android-gs-raviole-6.1-android15-qpr2" remote="aosp" sync-j="4" />
+  <project path="aosp" name="kernel/common" groups="partner" revision="3c76c2d71bb32039037c6f5dc38b172fe4142bdb">
+    <linkfile dest="common/build.config.constants" src="build.config.constants" />
+    <linkfile dest="common/modules.bzl" src="modules.bzl" />
+  </project>
+  <project path="private/devices/google/common" name="kernel/devices/google/common" groups="partner" revision="6fd029d842eb590fa7d1fba3ad7da6f835e45182">
+    <linkfile dest="WORKSPACE" src="bazel.WORKSPACE" />
+    <linkfile dest="device.bazelrc" src="device.bazelrc" />
+    <linkfile dest="update_symbol_list.sh" src="update_symbol_list.sh" />
+    <linkfile dest="common/BUILD.bazel" src="kleaf/common.BUILD.bazel" />
+  </project>
+  <project path="private/devices/google/gs101" name="kernel/devices/google/gs101" groups="partner" revision="c2916541386b519de9969fa5955f123e5daa5817">
+    <linkfile dest="build_gs101.sh" src="build_gs101.sh" />
+    <linkfile dest=".c1.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/raviole" name="kernel/devices/google/raviole" groups="partner,raviole" revision="e01b99227127dad599932732c7a8b9f38f1fd141">
+    <linkfile dest="build_raviole.sh" src="build_raviole.sh" />
+    <linkfile dest=".d13.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/bluejay" name="kernel/devices/google/bluejay" groups="partner,bluejay" revision="ca8a7016f4c9a7c4840b83fb66bca32992c48827">
+    <linkfile dest="build_bluejay.sh" src="build_bluejay.sh" />
+    <linkfile dest=".d14.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/gs201" name="kernel/devices/google/gs201" groups="partner" revision="966a2828ccce06078e59e7374c9c68cbe6089004">
+    <linkfile dest="build_gs201.sh" src="build_gs201.sh" />
+    <linkfile dest=".c2.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/pantah" name="kernel/devices/google/pantah" groups="partner,pantah" revision="4ee9bf79e77fcfa35e8e216f399b929415cc6946">
+    <linkfile dest="build_pantah.sh" src="build_pantah.sh" />
+    <linkfile dest=".d1.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/lynx" name="kernel/devices/google/lynx" groups="partner,lynx" revision="be3945c0643b61f01a5fc135c49f82631ac28557">
+    <linkfile dest="build_lynx.sh" src="build_lynx.sh" />
+    <linkfile dest=".d15.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/felix" name="kernel/devices/google/felix" groups="partner,felix" revision="47fff7cafa93df6ee4f99d86c77cff4891da8eb0">
+    <linkfile dest="build_felix.sh" src="build_felix.sh" />
+    <linkfile dest=".d2.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/tangorpro" name="kernel/devices/google/tangorpro" groups="partner,tangorpro" revision="59acb881f4ef23fd1b3388a5d401fea08c5ac36f">
+    <linkfile dest="build_tangorpro.sh" src="build_tangorpro.sh" />
+    <linkfile dest=".d3.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/zuma" name="kernel/devices/google/zuma" groups="partner" revision="ac3fc8170a3e3acaa1f45bd4d53c8aec3a5e3610">
+    <linkfile dest="build_zuma.sh" src="build_zuma.sh" />
+    <linkfile dest=".c3.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/shusky" name="kernel/devices/google/shusky" groups="partner,shusky" revision="6d716b8503f77225f96921e5048daec407645879">
+    <linkfile dest="build_shusky.sh" src="build_shusky.sh" />
+    <linkfile dest=".d4.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/akita" name="kernel/devices/google/akita" groups="partner,akita" revision="ac87c7eb63bd257fbbd0642b695162cb19a5abf3">
+    <linkfile dest="build_akita.sh" src="build_akita.sh" />
+    <linkfile dest=".d5.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/zumapro" name="kernel/devices/google/zumapro" groups="partner" revision="0a21d3e7ebcfa2a901050496ac72978e0dbed7aa">
+    <linkfile dest="build_zumapro.sh" src="build_zumapro.sh" />
+    <linkfile dest=".c4.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/caimito" name="kernel/devices/google/caimito" groups="partner,caimito" revision="95c8b25de3127c9bc1ea3be29981adacd8070334">
+    <linkfile dest="build_caimito.sh" src="build_caimito.sh" />
+    <linkfile dest=".d7.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/devices/google/comet" name="kernel/devices/google/comet" groups="partner,comet" revision="13f66b2b25ac78468f0d8613c1138820e2a6d0c5">
+    <linkfile dest="build_comet.sh" src="build_comet.sh" />
+    <linkfile dest=".d8.bazelrc" src="device.bazelrc" />
+  </project>
+  <project path="private/google-modules/soc/gs" name="kernel/google-modules/soc/gs" groups="partner" revision="5c48566f5564edbe69c2ea7c0b1dda9ce96a8816" />
+  <project path="private/google-modules/amplifiers" name="kernel/google-modules/amplifiers" groups="partner" revision="5e796c628103210e63c36269762fb14383fe729e" />
+  <project path="private/google-modules/aoc" name="kernel/google-modules/aoc" groups="partner" revision="c81c2548158a1c0b5e81a2734bdc67d57bc407ae" />
+  <project path="private/google-modules/aoc_ipc" name="kernel/google-modules/aoc-ipc" groups="partner" revision="d79e45ae6a589ca43f7699709c3e2b72a3b727a2" />
+  <project path="private/google-modules/bluetooth/broadcom" name="kernel/google-modules/bluetooth/broadcom" groups="partner" revision="0faa83f1328479c07f3703ff9a5b63021f2efdb7" />
+  <project path="private/google-modules/bluetooth/synaptics" name="kernel/google-modules/bluetooth/synaptics" groups="partner" revision="000d645fe7b623c747e56b24cd793ccd430c463f" />
+  <project path="private/google-modules/bluetooth/qcom" name="kernel/google-modules/bluetooth/qcom" groups="partner" revision="b709d07e75c4c1c14ae656f484f435ec51c21e07" />
+  <project path="private/google-modules/bms" name="kernel/google-modules/bms" groups="partner" revision="2a3ea226888e05a676d356be52f33c921ee27fcf" />
+  <project path="private/google-modules/display/samsung" name="kernel/google-modules/display/samsung" groups="partner" revision="7bb530d6f4a3acb7858e73026202739a5fe9a57e" />
+  <project path="private/google-modules/display/common" name="kernel/google-modules/display/common" groups="partner" revision="67668278c368bbcc1d36c9af14619aba37c6e24d" />
+  <project path="private/google-modules/display/panels/caimito" name="kernel/google-modules/display/panels/caimito" groups="partner" revision="bcb86b07508d7ff47d3dbc7484963601cf5239a4" />
+  <project path="private/google-modules/edgetpu/abrolhos" name="kernel/google-modules/edgetpu/abrolhos" groups="partner" revision="c494121e321ce09b35a41f0045f61fdeb213ad39" />
+  <project path="private/google-modules/edgetpu/janeiro" name="kernel/google-modules/edgetpu/janeiro" groups="partner" revision="888bc197145e20f19a5304594f1254e740211dca" />
+  <project path="private/google-modules/edgetpu/rio" name="kernel/google-modules/edgetpu/rio" groups="partner" revision="60fadb3dae41ddb032768567230f248cc852a239" />
+  <project path="private/google-modules/fingerprint/fpc" name="kernel/google-modules/fingerprint/fpc" groups="partner" revision="4cb7ddd04fd10083a44d6afee272b725a030372a" />
+  <project path="private/google-modules/fingerprint/qcom/qfs4008" name="kernel/google-modules/fingerprint/qcom/qfs4008" groups="partner" revision="e9e3ea007a0741fd5d478530f9044a3ab82cb106" />
+  <project path="private/google-modules/gps/broadcom/bcm47765" name="kernel/google-modules/gps/broadcom/bcm47765" groups="partner" revision="97f132262180a4c3da26fdb7dd208580621ada17" />
+  <project path="private/google-modules/gpu" name="kernel/google-modules/gpu" groups="partner" revision="5a8eb10d6878d2394555c14626cdf86293afbe56" />
+  <project path="private/google-modules/gxp/gs201" name="kernel/google-modules/gxp/gs201" groups="partner" revision="14c3bcd9f5bed642400c1b9832facbba7a468a24" />
+  <project path="private/google-modules/gxp/zuma" name="kernel/google-modules/gxp/zuma" groups="partner" revision="34e463e06549d50c4135711cb3c68db01c9f6afa" />
+  <project path="private/google-modules/hdcp/samsung" name="kernel/google-modules/hdcp/samsung" groups="partner" revision="875a482fe750576added1d1fd6eb6a0b943ebb83" />
+  <project path="private/google-modules/lwis" name="kernel/google-modules/lwis" groups="partner" revision="06536a32645c209f7428ea2eef350988cb55b536" />
+  <project path="private/google-modules/misc" name="kernel/google-modules/misc" groups="partner" revision="c9c8bf50bad2522a05ae6e3aa26a180a8c30a5a0" />
+  <project path="private/google-modules/perf" name="kernel/google-modules/perf" groups="partner" revision="7de380977283cc556eb6d00f68acb45f34c37eab" />
+  <project path="private/google-modules/power/mitigation" name="kernel/google-modules/power/mitigation" groups="partner" revision="2e5f25d1026f40be2d79afd1ab958eba86d9ad1f" />
+  <project path="private/google-modules/power/reset" name="kernel/google-modules/power/reset" groups="partner" revision="c8c87dd61758b207ee2b7f973cfa0aa0584b867c" />
+  <project path="private/google-modules/sensors/hall_sensor" name="kernel/google-modules/sensors/hall_sensor" groups="partner" revision="614e20de37f9d3c4a31db83216b5f87fa88d858e" />
+  <project path="private/google-modules/radio/samsung/s5300" name="kernel/google-modules/radio/samsung/s5300" groups="partner" revision="9b16eed8389000007beeda150acdea975521e1f7" />
+  <project path="private/google-modules/radio/samsung/s5400" name="kernel/google-modules/radio/samsung/s5400" groups="partner" revision="7461de0f4af7bb40741137e49e59b038fa5716cf" />
+  <project path="private/google-modules/touch/common" name="kernel/google-modules/touch/common" groups="partner" revision="5b37ddff6b9e06e40cec2c094ec4d64882b222bc" />
+  <project path="private/google-modules/touch/focaltech" name="kernel/google-modules/touch/focaltech_touch" groups="partner" revision="a93b483cb717cab1f84cb023d7c349d80db5baf5" />
+  <project path="private/google-modules/touch/fts" name="kernel/google-modules/touch/fts_touch" groups="partner" revision="18f44fca40156b5acf95c0361421dce34bfcc654" />
+  <project path="private/google-modules/touch/goodix" name="kernel/google-modules/touch/goodix_touch" groups="partner" revision="4856ad358867cbe585d2eb29f6d9b1fabd2b546b" />
+  <project path="private/google-modules/touch/novatek" name="kernel/google-modules/touch/novatek_touch" groups="partner" revision="9be848bf3f78994df2f354b4aa52990b18a90aba" />
+  <project path="private/google-modules/touch/sec" name="kernel/google-modules/touch/sec_touch" groups="partner" revision="5a35e03f990eb5405bc600857ae5da412207eba6" />
+  <project path="private/google-modules/touch/synaptics" name="kernel/google-modules/touch/synaptics_touch" groups="partner" revision="6110f445d99aa5d196c40c49e7e2d27c6c18b126" />
+  <project path="private/google-modules/trusty" name="kernel/google-modules/trusty" groups="partner" revision="49b22cf8be519c81936b86d64416e0839a4e831f" />
+  <project path="private/google-modules/typec" name="kernel/google-modules/typec" groups="partner" revision="f59d534ce10837287afd8af6261f5926863cac80" />
+  <project path="private/google-modules/uwb/qorvo/dw3000" name="kernel/google-modules/uwb/qorvo/dw3000" groups="partner" revision="8dda33c2283e22949951d9d96f63daf51f082636" />
+  <project path="private/google-modules/uwb/qorvo/qm35" name="kernel/google-modules/uwb/qorvo/qm35" groups="partner" revision="dc84a8c7861eb591f02b5156081abe01fab636ca" />
+  <project path="private/google-modules/video/gchips" name="kernel/google-modules/video/gchips" groups="partner" revision="693aab624fbaaa6962864642550421963276791c" />
+  <project path="private/google-modules/nfc" name="kernel/google-modules/nfc" groups="partner" revision="6b00f72b499f512b87bd06c9efab7dfd3297ba16" />
+  <project path="private/google-modules/wlan/bcm4383" name="kernel/google-modules/wlan/bcmdhd/bcm4383" groups="partner" revision="48cc4e597c7c078dbab1af2574d7bfcc483b6371" />
+  <project path="private/google-modules/wlan/bcm4389" name="kernel/google-modules/wlan/bcmdhd/bcm4389" groups="partner" revision="07aaee502e78656ae626ac214fb8f48d9a731cf8" />
+  <project path="private/google-modules/wlan/bcm4390" name="kernel/google-modules/wlan/bcmdhd/bcm4390" groups="partner" revision="106dbddb856a5f96590029722850bf85e07f0f92" />
+  <project path="private/google-modules/wlan/bcm4398" name="kernel/google-modules/wlan/bcmdhd/bcm4398" groups="partner" revision="becd78a73deb1c3a3c0b1a4940d9e3a92e37818a" />
+  <project path="private/google-modules/wlan/dhd43752p" name="kernel/google-modules/wlan/syna/dhd43752p" groups="partner" revision="3ef654132da23b48c3257a8ef36f9c82ac11a210" />
+  <project path="private/google-modules/wlan/wcn6740/cnss2" name="kernel/google-modules/wlan/qcom/wcn6740/cnss2" groups="partner" revision="4d975459df6d36039c1e711843e187d15a031425" />
+  <project path="private/google-modules/wlan/wcn6740/wlan" name="kernel/google-modules/wlan/qcom/wcn6740/wlan" groups="partner" revision="f01ab7abc6adb69d9bffe3782efda6b4b148e8ff" />
+  <project path="private/google-modules/wlan/wlan_ptracker" name="kernel/google-modules/wlan/wlan_ptracker" groups="partner" revision="0a15604e7e93c45335a8f40f0263e47b0ac81227" />
+  <project path="build/kernel" name="kernel/build" groups="partner" revision="560e3751ab4d1d96e0db51e860f6437b41786c28">
+    <linkfile dest="tools/bazel" src="kleaf/bazel.sh" />
+    <linkfile dest="build/build.sh" src="build.sh" />
+    <linkfile dest="build/build_abi.sh" src="build_abi.sh" />
+    <linkfile dest="build/build_test.sh" src="build_test.sh" />
+    <linkfile dest="build/build_utils.sh" src="build_utils.sh" />
+    <linkfile dest="build/config.sh" src="config.sh" />
+    <linkfile dest="build/envsetup.sh" src="envsetup.sh" />
+    <linkfile dest="build/_setup_env.sh" src="_setup_env.sh" />
+    <linkfile dest="build/multi-switcher.sh" src="multi-switcher.sh" />
+    <linkfile dest="build/abi" src="abi" />
+    <linkfile dest="build/static_analysis" src="static_analysis" />
+  </project>
+  <project path="kernel/configs" name="kernel/configs" revision="0950b8c2d3f35199d3f103d107d6225dc97ced6f" />
+  <project path="prebuilts/clang/host/linux-x86" name="platform/prebuilts/clang/host/linux-x86" groups="partner" revision="7775eb113f960bc69a780b621d03a715914d4bca" />
+  <project path="prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" name="platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" groups="partner" revision="f6d40532273c8bd628b960ecc0970c7294c8d891" />
+  <project path="prebuilts/build-tools" name="platform/prebuilts/build-tools" groups="partner" revision="c181f690fe9b76142b3203c2ab959b6299d4d1fd" />
+  <project path="prebuilts/kernel-build-tools" name="kernel/prebuilts/build-tools" groups="partner" revision="e905be252a53d20c52bd9e59df3ff8fdd46b9eab" />
+  <project path="tools/mkbootimg" name="platform/system/tools/mkbootimg" groups="partner" revision="615a1fced5f8e2755642d30357674d3bfa21b85e" />
+  <project path="build/bazel_common_rules" name="platform/build/bazel_common_rules" groups="partner" revision="b4f0919269ec78d28ec32a34ca90e107c3a41f4e" />
+  <project path="external/bazel-skylib" name="platform/external/bazel-skylib" groups="partner" revision="f998e5dc13c03f0eae9e373263d3afff0932c738" />
+  <project path="external/python/absl-py" name="platform/external/python/absl-py" groups="partner" revision="2f199605a9875340569e039657f8b4c72d51b84d" />
+  <project path="external/stardoc" name="platform/external/stardoc" groups="partner" revision="e83f522ee95419e55d2c5654aa6e0143beeef595" />
+  <project path="prebuilts/bazel/linux-x86_64" name="platform/prebuilts/bazel/linux-x86_64" groups="partner" revision="7bfbec9e829bbae6816d5f39aba345df76e627c1" />
+  <project path="prebuilts/jdk/jdk11" name="platform/prebuilts/jdk/jdk11" groups="partner" revision="649eec4416e2ed6298af49a56876772767a0e5ae" />
+  <project path="prebuilts/ndk-r23" name="toolchain/prebuilts/ndk/r23" groups="partner" revision="19ac7e4eded12adb99d4f613490dde6dd0e72664" />
+</manifest>
