@@ -42,7 +42,14 @@ hidden={prefix+name+suffix for name in helpers+bridges
         for prefix in prefixes for suffix in ['', '.isra.0', '.constprop.2']}
 controls=['schedule','__schedule','vfs_read','kallsyms_lookup_name',
           'selinux_status_update_setenforce','selnl_notify_setenforce',
-          'fake_stateful','my_write_accessory','normal_fake_state']
+          'fake_stateful','my_write_accessory','normal_fake_state','get_user_arg_ptr']
+namespace=json.loads((pathlib.Path(__file__).parent/'symbol-namespace.json').read_text())
+hidden.update(prefix+name+suffix for name in namespace.values()
+              for prefix in prefixes for suffix in ['', '.isra.0', '.constprop.2'])
+assert 'ksu_local_get_user_arg_ptr(' in (root/'drivers/kernelsu/runtime/ksud.c').read_text()
+assert 'ksu_local_get_user_arg_ptr(' not in (root/'fs/exec.c').read_text()
+assert '"file_wrapper: initialize anon_inode_mnt failed, got NULL\\n"' in (root/'drivers/kernelsu/infra/file_wrapper.c').read_text()
+assert 'ksu_local_anon_inode_mnt' in (root/'drivers/kernelsu/infra/file_wrapper.c').read_text()
 compiled=[]
 if args.system_map:
     symbols=[line.split()[-1] for line in args.system_map.read_text().splitlines() if line.split()]
@@ -51,6 +58,10 @@ if args.system_map:
                      'escape_to_root_for_init','is_zygote']
     compiled=[name for name in symbols if any(n in name for n in needles)]
     hidden.update(compiled)
+    # Unique known root-owned names must no longer survive outside the namespace.
+    for old in ['do_grant_root','do_enable_kpm','crown_manager','do_get_hook_type',
+                'fake_state','fake_status','backup_sepolicy','my_setprocattr']:
+        assert not any(n==old or n.startswith(old+'.') for n in symbols),('unprefixed root symbol',old)
 
 bbg=(root/'security/baseband-guard/baseband_guard.c').read_text()
 blk=(root/'security/baseband-guard/blkdev_helper.c').read_text()

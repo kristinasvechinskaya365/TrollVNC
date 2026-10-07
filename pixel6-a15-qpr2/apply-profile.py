@@ -3,6 +3,7 @@
 import hashlib
 import json
 import pathlib
+import re
 import shutil
 import sys
 
@@ -143,6 +144,37 @@ old='default "landlock,lockdown,yama,loadpin,safesetid,integrity,selinux,smack,t
 assert s.count(old)==1
 s=s.replace(old, old[:-1]+',baseband_guard"')
 p.write_text(s)
+
+# Namespace root-owned helpers so generic names do not collide with ordinary
+# kernel symbols. Replace C identifiers only, preserving literals/comments and
+# therefore external kallsyms lookup strings and SELinux permission names.
+namespace=json.loads((pathlib.Path(__file__).parent/'symbol-namespace.json').read_text())
+token=re.compile(r'/\*[\s\S]*?\*/|//[^\n]*|"(?:\\[\s\S]|[^"\\])*"|\'(?:\\[\s\S]|[^\'\\])*\'|\b[A-Za-z_]\w*\b')
+
+def namespace_file(path, mapping):
+    p=root/path
+    old=p.read_text()
+    new=token.sub(lambda m:mapping.get(m.group(),m.group()),old)
+    if new!=old:
+        p.write_text(new)
+        changes.append(path)
+
+for p in sorted((root/'drivers/kernelsu').rglob('*')):
+    if p.is_file() and p.suffix in ['.c','.h']:
+        namespace_file(str(p.relative_to(root)),namespace)
+external={
+    'fs/susfs.c':['setup_selinux'],
+    'security/selinux/hooks.c':['fake_state','my_setprocattr'],
+    'security/selinux/selinuxfs.c':['fake_state','fake_status','fake_status_initialize_key',
+        'initialize_fake_status','my_sel_open_handle_status','my_write_context','my_write_access'],
+}
+for path,names_to_change in external.items():
+    namespace_file(path,{n:namespace[n] for n in names_to_change})
+# The normal exec implementation keeps its original same-named helper.
+assert 'get_user_arg_ptr(' in (root/'fs/exec.c').read_text()
+assert 'ksu_local_get_user_arg_ptr(' not in (root/'fs/exec.c').read_text()
+out.mkdir(parents=True, exist_ok=True)
+(out/'profile-namespace.json').write_text(json.dumps(namespace,indent=2)+'\n')
 
 paths=sorted(set(changes+['security/Makefile','security/Kconfig']) |
              {str(p.relative_to(root)) for p in dest.rglob('*') if p.is_file()})

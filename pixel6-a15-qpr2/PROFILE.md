@@ -16,7 +16,7 @@ symbol trimming, CFI, shadow call stack, SELinux, BPF and vendor-module support.
 | BPF | Enable BPF_UNPRIV_DEFAULT_OFF. Privileged Android networking/BPF remains compiled. |
 | SUSFS logs | Keep logging support, with its static key initially off. The manager can enable diagnostics. |
 | SukiSU messages | Non-debug informational messages become debug messages; warnings/errors and separate sulog auditing remain. |
-| Proc symbols | Add exact SELinux helper names, compiler suffixes and metadata prefixes to the existing filter. Internal lookup and KMI exports remain available. |
+| Proc symbols | Namespace root-owned internal helpers and data as ksu_local_* and retain compiler/metadata filtering. Keep the normal kernel's same-named functions intact. Also cover the unprefixed SELinux wrapper names. Internal lookup and KMI exports remain available. |
 | Release string | Retain the real Google base revision without the incidental worktree -dirty suffix. No Google build ID or phone fingerprint is invented. Source hashes and patches identify the modified build. |
 | BBG | Integrate Baseband-guard a54e0dc6cf0aff4dd87fec49644a02d2eb612905 with standard LSM blobs; boot/recovery guard options remain off. |
 
@@ -35,6 +35,14 @@ The pinned SukiSU/SUSFS SELinux status, context, access-query and conditional
 AVC-view features remain present. Their runtime controls still need matching
 userspace configuration. Compilation does not establish that every hiding
 control is enabled or effective on the phone.
+
+Android 15's NetBpfLoad explicitly writes unprivileged_bpf_disabled back to 0
+because networking consumers require it. The selected value 2 is an early boot
+default that remains changeable; this profile does not pin it to 1 or block the
+platform override. Likewise, Android init can change kptr/dmesg sysctls, and the
+kernel command line can override debugfs defaults. Runtime values must be read
+on the exact ROM. Source: Android platform/packages/modules/Connectivity,
+refs/tags/android-15.0.0_r1/netbpfload/NetBpfLoad.cpp.
 
 The generic SukiSU 69_hide_stuff patch was reviewed and excluded: it rewrites
 Lineage mapping names and JIT mapping execution flags, which are not established
