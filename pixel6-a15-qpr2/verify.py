@@ -32,6 +32,10 @@ profile_report=json.loads((out/'profile-source-sha256.json').read_text())
 import hashlib
 assert profile_report and all(hashlib.sha256((src/p).read_bytes()).hexdigest()==digest
                               for p,digest in profile_report.items())
+stamp=json.loads((out/'profile-kleaf-stamp-proof.json').read_text())
+assert stamp['status']=='PASS'
+assert stamp['path']=='build/kernel/kleaf/workspace_status_stamp.py'
+assert hashlib.sha256((src.parent/stamp['path']).read_bytes()).hexdigest()==stamp['patched_sha256']
 release_match=re.search(rb'Linux version ([^ \x00]+) ',(out/'dist/Image').read_bytes())
 assert release_match,'kernel release banner missing'
 release=release_match.group(1).decode('ascii')

@@ -63,6 +63,12 @@ slots, protected names and empty diagnostic buffers. It also tests the filter
 against relevant names from the newly compiled System.map. verify.py requires
 the final config, BBG LSM symbol and exact source-profile hashes.
 
+The pinned Kleaf stamp generator is patched only for the aosp project; its real
+base SHA remains. A test invokes the actual helper for clean/modified aosp and
+vendor repositories, absolute paths and build-number suffixes. Other projects'
+dirty-state stamps remain intact. Both original and patched generator hashes
+are included in profile-kleaf-stamp-proof.json and verified after compilation.
+
 Physical boot, privileged Android BPF consumers, vendor diagnostics, BBG runtime
 enforcement, SELinux/SUSFS behavior and KPM load/unload still require device
 qualification with the exact ROM. The final Image is not a matched boot.img.

@@ -18,6 +18,8 @@ cp "$RECIPE/default.xml" .repo/manifests/default.xml
 repo sync -c --no-tags -j4 --fail-fast
 repo manifest -r > "$OUT/resolved-manifest.xml"
 [[ "$(git -C aosp rev-parse HEAD)" == 3c76c2d71bb32039037c6f5dc38b172fe4142bdb ]] || die 'kernel pin mismatch'
+[[ "$(git -C build/kernel rev-parse HEAD)" == 560e3751ab4d1d96e0db51e860f6437b41786c28 ]] || die 'Kleaf pin mismatch'
+python3 "$RECIPE/apply-kleaf-stamp.py" . "$OUT"
 git clone --branch builtin https://github.com/SukiSU-Ultra/SukiSU-Ultra.git KernelSU
 git -C KernelSU checkout --detach "$SUKISU_REF"
 git clone --branch gki-android14-6.1 https://github.com/ShirkNeko/susfs4ksu.git susfs4ksu
