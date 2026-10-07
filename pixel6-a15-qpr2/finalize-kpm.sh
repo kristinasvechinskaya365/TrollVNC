@@ -17,7 +17,7 @@ grep -qxF 'CONFIG_KPM=y' "$OUT/config" || die 'KPM is absent from the built kern
 # Ephemeral standalone KernelPatch key; SukiSU manager uses its own control path.
 key="$(openssl rand -hex 24)"
 [[ "${#key}" -eq 48 ]] || die 'KPM key generation failed'
-"$PAYLOAD/kptools-linux" -p -i "$OUT/Image.pre-kpm" -k "$PAYLOAD/kpimg" -s "$key" -o "$OUT/Image.tmp" > /tmp/kpm-patch-private.log 2>&1
+"$PAYLOAD/kptools-linux" -p -i "$OUT/Image.pre-kpm" -k "$PAYLOAD/kpimg" -S "$key" -o "$OUT/Image.tmp" > /tmp/kpm-patch-private.log 2>&1
 rm -f /tmp/kpm-patch-private.log
 unset key
 [[ -s "$OUT/Image.tmp" ]] || die 'KPM tool produced no Image'
@@ -30,6 +30,7 @@ grep -aFq 'KPM_FAR_BRANCH_VENEER' "$OUT/Image.tmp" || die 'KPM far branch marker
 "$PAYLOAD/kptools-linux" -l -i "$OUT/Image.tmp" > /tmp/kpm-image-info-private.txt
 grep -qxF 'patched=true' /tmp/kpm-image-info-private.txt || die 'postpatch verification failed'
 grep -qxF 'version=0xd00' /tmp/kpm-image-info-private.txt || die 'unexpected KernelPatch version'
+grep -qxF 'superkey=' /tmp/kpm-image-info-private.txt || die 'plaintext key embedded in Image'
 
 printf 'patched=true\nversion=0xd00\n' > "$OUT/kpm-image-info.txt"
 rm -f /tmp/kpm-image-info-private.txt

@@ -23,6 +23,10 @@ git clone --branch gki-android14-6.1 https://github.com/ShirkNeko/susfs4ksu.git 
 git -C susfs4ksu checkout --detach "$SUSFS_REF"
 grep -qxF '#define SUSFS_VERSION "v2.3.0"' susfs4ksu/kernel_patches/include/linux/susfs.h
 cp -a KernelSU/kernel aosp/drivers/kernelsu
+printf '%s  %s\n' '21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9' "$RECIPE/compat/arch.h" | sha256sum --check --status
+[[ ! -e aosp/drivers/kernelsu/include/arch.h && ! -L aosp/drivers/kernelsu/include/arch.h ]] || die 'unexpected builtin arch.h; review donor restoration'
+cp "$RECIPE/compat/arch.h" aosp/drivers/kernelsu/include/arch.h
+cp "$RECIPE/compat/README.md" "$OUT/sukisu-arch-provenance.md"
 python3 "$RECIPE/test-sukisu-kpm.py" KernelSU/kernel | tee "$OUT/sukisu-kpm-host-proof.txt"
 python3 "$RECIPE/repair-sukisu-kpm.py" aosp/drivers/kernelsu
 diff -u KernelSU/kernel/kpm/kpm.c aosp/drivers/kernelsu/kpm/kpm.c > "$OUT/sukisu-kpm-handler.patch" || [[ "$?" == 1 ]]
@@ -78,6 +82,8 @@ platform=Android 15 QPR2 source target
 manifest=reconstructed official topology with 80 stable project revisions pinned
 common_commit=3c76c2d71bb32039037c6f5dc38b172fe4142bdb
 sukisu_commit=$SUKISU_REF
+sukisu_arch_donor=42d7fda3d787b7df90fc440a50bb9c8216a3fdef:kernel/include/arch.h
+sukisu_arch_sha256=21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9
 susfs_commit=$SUSFS_REF
 susfs_version=v2.3.0
 kernel_config_check=PASS

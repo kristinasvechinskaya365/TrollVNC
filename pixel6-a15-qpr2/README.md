@@ -16,15 +16,22 @@ symbol trimming and ABI checks. Twelve declared KPM bridge exports are added
 to a dedicated KMI allowlist; strict checks and symbol trimming remain enabled.
 The final compiled config must retain KPM's
 internal KALLSYMS_ALL and the SUSFS proc symbol hiding feature simultaneously.
-System.map must contain the real SukiSU bridge and SUSFS entry points. KPM
+System.map must contain all twelve declared SukiSU bridge exports and the
+SUSFS entry point. KPM
 bridge stubs require the mandatory post-build KernelPatch payload; configuration
 alone is insufficient. The far branch relocation self-test is a build test,
 not proof of runtime module loading on the phone.
 
 Artifacts include Image, config, full dist, resolved manifest, verification,
-postpatch inspection and provenance. No standalone KernelPatch key is published.
+postpatch inspection and provenance. A compact final artifact also contains
+Image.gz and the verification evidence. The standalone KernelPatch key is
+random and hashed in the Image; the tool inspection must show an empty plaintext
+superkey. The pinned payload disables its separate direct supercall.
 The source-dist-before-kpm directory records Google build outputs before KPM;
 those boot images are unqualified and must not be mistaken for a final KPM boot.
+See GOOGLE_A15_BASELINE.md for the exact production source lineage and
+compat/README.md for the pinned upstream header restoring the builtin branch’s
+missing architecture definitions.
 Guarded source repairs align SUSFS hook types with builtin SukiSU and bound KPM
 user-copy/metadata/veneer allocations. Host regression tests execute repaired
 C with AddressSanitizer and UndefinedBehaviorSanitizer. These tests do not

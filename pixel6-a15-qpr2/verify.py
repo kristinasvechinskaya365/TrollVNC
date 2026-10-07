@@ -15,7 +15,11 @@ assert not missing,missing
 maps=list((out/'dist').glob('System.map'))
 assert len(maps)==1,'System.map missing'
 symbols=set(line.split()[-1] for line in maps[0].read_text().splitlines() if line.split())
-needed=['sukisu_kpm_load_module_path','sukisu_kpm_unload_module','sukisu_kpm_control','susfs_init']
+bridge=set()
+for f in (src/'drivers/kernelsu/kpm').glob('*.c'):
+ bridge.update(re.findall(r'EXPORT_SYMBOL\((\w+)\)',f.read_text()))
+assert len(bridge)==12,'unexpected KPM bridge export set'
+needed=sorted(bridge)+['susfs_init']
 assert set(needed)<=symbols,sorted(set(needed)-symbols)
 report={'compiled_config':'PASS','required':required,'compiled_symbols':needed,
  'proc_symbol_hiding':'compiled; runtime not tested',

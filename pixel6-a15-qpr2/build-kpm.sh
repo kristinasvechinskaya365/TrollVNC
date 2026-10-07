@@ -189,6 +189,9 @@ echo '=== BUILD SUKISU KERNELPATCH ANDROID KPIMG ==='
 [[ -s "$SRC/kernel/kpimg" ]] || fail 'kpimg build output missing'
 [[ -s "$SRC/kernel/kpimg.elf" ]] || fail 'kpimg.elf build output missing'
 grep -aFq 'KPM_FAR_BRANCH_VENEER' "$SRC/kernel/kpimg" || fail 'veneer runtime marker missing from kpimg'
+if grep -qE '^\s*rc = supercall_install\(' "$SRC/kernel/patch/patch.c"; then
+  fail 'standalone KernelPatch supercall was re-enabled'
+fi
 
 # Build Linux kptools so a later finalizer can inject this exact kpimg explicitly.
 echo '=== BUILD KERNELPATCH KTOOLS ==='

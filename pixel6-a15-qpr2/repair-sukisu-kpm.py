@@ -98,19 +98,22 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1,
     } else if (control_code == SUKISU_KPM_LIST) {
         char buf[1024] = { 0 };
         size_t bytes;
+        size_t capacity;
 
-        if (!arg2 || arg2 > sizeof(buf)) {
+        if (!arg2) {
             res = -EINVAL;
             goto exit;
         }
-        if (!arg1 || !access_ok((void __user *)arg1, arg2)) {
+        /* arg2 is caller capacity; larger buffers remain ABI-compatible. */
+        capacity = arg2 < sizeof(buf) ? (size_t)arg2 : sizeof(buf);
+        if (!arg1 || !access_ok((void __user *)arg1, capacity)) {
             res = -EFAULT;
             goto exit;
         }
-        sukisu_kpm_list(buf, (int)arg2, &res);
+        sukisu_kpm_list(buf, (int)capacity, &res);
         if (res < 0)
             goto exit;
-        if ((unsigned long)res > arg2 || (size_t)res > sizeof(buf)) {
+        if ((size_t)res > capacity) {
             res = -ENOBUFS;
             goto exit;
         }

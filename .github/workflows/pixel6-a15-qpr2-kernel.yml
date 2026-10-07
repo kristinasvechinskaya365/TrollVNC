@@ -43,7 +43,26 @@ jobs:
           set -o pipefail
           bash pixel6-a15-qpr2/build.sh 2>&1 | tee kernel-build.log
       - name: Apply and verify KPM in final Image
+        id: final_image
         run: bash pixel6-a15-qpr2/finalize-kpm.sh
+      - name: Upload compact final kernel
+        if: steps.final_image.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oriole-a15-final-kernel-${{ github.sha }}
+          path: |
+            output-pixel6-a15/Image.gz
+            output-pixel6-a15/config*
+            output-pixel6-a15/SHA256SUMS
+            output-pixel6-a15/*proof*
+            output-pixel6-a15/provenance.txt
+            output-pixel6-a15/verification.json
+            output-pixel6-a15/resolved-manifest.xml
+            output-pixel6-a15/kpm-image-info.txt
+            output-pixel6-a15/source-dist-before-kpm/System.map
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 14
       - name: Upload kernel and verification evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -156,15 +156,16 @@ int main(void) {
     RUN(SUKISU_KPM_INFO,name,out); assert(res==-ENOBUFS);
     payload_mode=1; RUN(SUKISU_KPM_INFO,name,out); assert(res==-EOPNOTSUPP);
     payload_mode=0; RUN(SUKISU_KPM_INFO,name,0); assert(res==-EFAULT);
-    /* LIST rejects caller-controlled lengths beyond the local stack buffer. */
+    /* LIST treats arg2 as capacity and clamps the actual local payload buffer. */
     calls=method_calls; copies=data_copies;
     RUN(SUKISU_KPM_LIST,out,0); assert(res==-EINVAL);
-    RUN(SUKISU_KPM_LIST,out,1025); assert(res==-EINVAL);
-    RUN(SUKISU_KPM_LIST,out,UINT64_MAX); assert(res==-EINVAL);
     RUN(SUKISU_KPM_LIST,0,1024); assert(res==-EFAULT);
     assert(method_calls==calls && data_copies==copies);
     memset(out,0x5a,sizeof(out)); RUN(SUKISU_KPM_LIST,out,1024);
     assert(res==5 && !memcmp(out,"test",5) && (unsigned char)out[5]==0x5a);
+    RUN(SUKISU_KPM_LIST,out,1025); assert(res==5 && (unsigned char)out[5]==0x5a);
+    RUN(SUKISU_KPM_LIST,out,4096); assert(res==5 && (unsigned char)out[5]==0x5a);
+    RUN(SUKISU_KPM_LIST,out,UINT64_MAX); assert(res==5 && (unsigned char)out[5]==0x5a);
     RUN(SUKISU_KPM_LIST,out,1); assert(res==-ENOBUFS);
     payload_mode=2; RUN(SUKISU_KPM_LIST,out,1024); assert(res==-ENOBUFS);
     payload_mode=1; RUN(SUKISU_KPM_LIST,out,1024); assert(res==-EOPNOTSUPP);
