@@ -11,8 +11,8 @@ This reconstructed source target does not claim compatibility with an unknown
 phone ROM fingerprint. The SUSFS patch adapts three context conflicts against
 the pinned Google kernel, retaining the intended hooks (including smaps).
 
-No prebuilt GKI substitution, CFI disabling, blanket symbol trimming disabling,
-or ABI-check suppression is used. Twelve declared KPM bridge exports are added
+The build uses the modified source GKI and keeps CONFIG_CFI_CLANG=y,
+symbol trimming and ABI checks. Twelve declared KPM bridge exports are added
 to a dedicated KMI allowlist; strict checks and symbol trimming remain enabled.
 The final compiled config must retain KPM's
 internal KALLSYMS_ALL and the SUSFS proc symbol hiding feature simultaneously.
@@ -25,9 +25,15 @@ Artifacts include Image, config, full dist, resolved manifest, verification,
 postpatch inspection and provenance. No standalone KernelPatch key is published.
 The source-dist-before-kpm directory records Google build outputs before KPM;
 those boot images are unqualified and must not be mistaken for a final KPM boot.
+Guarded source repairs align SUSFS hook types with builtin SukiSU and bound KPM
+user-copy/metadata/veneer allocations. Host regression tests execute repaired
+C with AddressSanitizer and UndefinedBehaviorSanitizer. These tests do not
+establish physical kernel boot or module-loading behavior.
 Image is not a flashable boot.img; the exact Android 15 ROM's boot/vendor/DTBO
 compatibility and a physical boot + manager + KPM smoke test remain necessary.
 This kernel does not establish camera injection, depth or biometric liveness.
+KernelPatch hooks CFI failure handlers to permit calls into its allocations;
+CONFIG_CFI_CLANG=y does not mean runtime protection is identical to stock.
 
 Upstream source licenses apply: SukiSU Ultra GPL-2.0, Google Linux kernel GPL-2.0,
 SUSFS GPL-2.0 and KernelPatch GPL-2.0. Sources are fetched at recorded revisions;

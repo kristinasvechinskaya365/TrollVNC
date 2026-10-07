@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${OUT:-$ROOT/output-pixel6-a15}"
 PAYLOAD="${PAYLOAD:-$ROOT/output-pixel-kpm-farbranch}"
+WORK="${WORK:-$ROOT/work-pixel6-a15}"
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 [[ -s "$OUT/Image.pre-kpm" && -s "$OUT/config" ]] || die 'core build is missing'
@@ -21,8 +22,8 @@ rm -f /tmp/kpm-patch-private.log
 unset key
 [[ -s "$OUT/Image.tmp" ]] || die 'KPM tool produced no Image'
 
-before="$(strings "$OUT/Image.pre-kpm" | awk '/^Linux version / {print $3; exit}')"
-after="$(strings "$OUT/Image.tmp" | awk '/^Linux version / {print $3; exit}')"
+before="$(strings "$OUT/Image.pre-kpm" | awk '/^Linux version / && !found {print $3; found=1}')"
+after="$(strings "$OUT/Image.tmp" | awk '/^Linux version / && !found {print $3; found=1}')"
 [[ -n "$before" && "$before" == "$after" && "$after" == 6.1.* ]] || die 'KPM changed the kernel release'
 ! cmp -s "$OUT/Image.pre-kpm" "$OUT/Image.tmp" || die 'KPM did not modify the Image'
 grep -aFq 'KPM_FAR_BRANCH_VENEER' "$OUT/Image.tmp" || die 'KPM far branch marker missing'
@@ -33,7 +34,7 @@ grep -qxF 'version=0xd00' /tmp/kpm-image-info-private.txt || die 'unexpected Ker
 printf 'patched=true\nversion=0xd00\n' > "$OUT/kpm-image-info.txt"
 rm -f /tmp/kpm-image-info-private.txt
 mv "$OUT/Image.tmp" "$OUT/Image"
-"$ROOT/work-pixel6-a15/aosp/scripts/extract-ikconfig" "$OUT/Image" > "$OUT/config.post-kpm"
+"$WORK/aosp/scripts/extract-ikconfig" "$OUT/Image" > "$OUT/config.post-kpm"
 cmp "$OUT/config" "$OUT/config.post-kpm" || die 'KPM changed the embedded config'
 gzip -c "$OUT/Image" > "$OUT/Image.gz"
 cp "$PAYLOAD/proof.txt" "$OUT/kpm-payload-proof.txt"

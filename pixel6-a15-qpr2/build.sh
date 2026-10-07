@@ -23,6 +23,10 @@ git clone --branch gki-android14-6.1 https://github.com/ShirkNeko/susfs4ksu.git 
 git -C susfs4ksu checkout --detach "$SUSFS_REF"
 grep -qxF '#define SUSFS_VERSION "v2.3.0"' susfs4ksu/kernel_patches/include/linux/susfs.h
 cp -a KernelSU/kernel aosp/drivers/kernelsu
+python3 "$RECIPE/test-sukisu-kpm.py" KernelSU/kernel | tee "$OUT/sukisu-kpm-host-proof.txt"
+python3 "$RECIPE/repair-sukisu-kpm.py" aosp/drivers/kernelsu
+diff -u KernelSU/kernel/kpm/kpm.c aosp/drivers/kernelsu/kpm/kpm.c > "$OUT/sukisu-kpm-handler.patch" || [[ "$?" == 1 ]]
+diff -u KernelSU/kernel/kpm/super_access.c aosp/drivers/kernelsu/kpm/super_access.c > "$OUT/sukisu-kpm-struct.patch" || [[ "$?" == 1 ]]
 printf '\nobj-$(CONFIG_KSU) += kernelsu/\n' >> aosp/drivers/Makefile
 printf '\nsource "drivers/kernelsu/Kconfig"\n' >> aosp/drivers/Kconfig
 python3 - <<'PY'
@@ -33,10 +37,18 @@ block=s[a:b]
 assert block.count('default n')==1
 p.write_text(s[:a]+block.replace('default n','default y')+s[b:])
 # Remove network-derived version labels: the source SHA is the version identity.
+# Numeric version freezes upstream's main-derived value at main SHA
+# 42d7fda3d787b7df90fc440a50bb9c8216a3fdef (3774 commits), rather than
+# deriving a lower value from builtin's separate 814-commit history.
 p=Path('aosp/drivers/kernelsu/Makefile');s=p.read_text()
 a=s.index('git_short_sha    =');b=s.index('$(info -- $(REPO_NAME) version:',a)
-s=s[:a]+'KSU_VERSION := 37999\nKSU_VERSION_FULL := v4.2.0-70fa0e09@builtin\n'+s[b:]
+s=s[:a]+'KSU_VERSION := 40959\nKSU_VERSION_FULL := v4.2.0-70fa0e09@builtin\n'+s[b:]
 p.write_text(s)
+# KPM selects KALLSYMS_ALL. Kconfig's canonical savedefconfig omits this
+# redundant line; verify.py still requires CONFIG_KALLSYMS_ALL=y in Image.
+p=Path('aosp/arch/arm64/configs/gki_defconfig');s=p.read_text()
+assert s.count('CONFIG_KALLSYMS_ALL=y\n')==1
+p.write_text(s.replace('CONFIG_KALLSYMS_ALL=y\n','',1))
 # Add only the twelve declared SukiSU KPM bridge exports to the KMI allowlist.
 # Keep strict mode and symbol trimming; do not bypass either check.
 import re

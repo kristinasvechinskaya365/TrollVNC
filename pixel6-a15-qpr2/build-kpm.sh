@@ -9,6 +9,7 @@ SRC_REPO='https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch.git'
 SRC_REF='e565c93ff6d0b992d9dfcbd43533a49d744a5f23'
 EXPECTED_VERSION_HEX='0x000d00'
 OUT="${OUT:-$PWD/output-pixel-kpm-farbranch}"
+RECIPE="$(cd "$(dirname "$0")" && pwd)"
 WORK="${WORK:-/tmp/pixel-kpm-farbranch-${GITHUB_RUN_ID:-$$}}"
 TARGET_COMPILE="${TARGET_COMPILE:-}"
 
@@ -173,6 +174,9 @@ assert 0xd61f0200 == 0xd61f0000 | (16 << 5)
 print('KPM_FAR_BRANCH_RANGE_SELFTEST=PASS')
 PY
 
+python3 "$RECIPE/test-kpm-payload.py" "$SRC" | tee "$OUT/payload-host-proof.txt"
+python3 "$RECIPE/repair-kpm-payload.py" "$SRC"
+
 echo '=== BUILD SUKISU KERNELPATCH ANDROID KPIMG ==='
 (
   cd "$SRC/kernel"
@@ -202,6 +206,7 @@ cp "$SRC/kernel/kpimg" "$OUT/kpimg"
 cp "$SRC/kernel/kpimg.elf" "$OUT/kpimg.elf"
 cp "$SRC/tools/build/kptools" "$OUT/kptools-linux"
 git -C "$SRC" diff -- kernel/patch/include/module.h kernel/patch/module/module.c kernel/patch/module/relo.c > "$OUT/farbranch.patch"
+git -C "$SRC" diff -- kernel/patch/sukisu/sukisu.c > "$OUT/payload-version.patch"
 
 KPIMG_SHA="$(sha256sum "$OUT/kpimg" | awk '{print $1}')"
 KPTOOLS_SHA="$(sha256sum "$OUT/kptools-linux" | awk '{print $1}')"
@@ -222,4 +227,3 @@ EOF
 
 cat "$OUT/proof.txt"
 echo 'PIXEL_KPM_FAR_BRANCH_PAYLOAD=PASS'
-
