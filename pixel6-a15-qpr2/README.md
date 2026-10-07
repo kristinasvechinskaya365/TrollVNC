@@ -4,6 +4,9 @@ This independent recipe builds Google Raviole (Pixel 6 / oriole) 6.1 sources,
 SukiSU Ultra builtin, SUSFS v2.3.0 with every supported feature, and a repaired
 SukiSU KernelPatch KPM payload. This is not an emulator kernel.
 
+PROFILE.md describes the additional restricted-inspection and BBG profile,
+including what is compiled, what defaults change, and what remains unqualified.
+
 Google has no stable QPR2 manifest ref. default.xml uses the official beta
 manifest topology, with all 80 project revisions resolved from their official
 stable android-gs-raviole-6.1-android15-qpr2 branch and pinned to exact SHAs.

@@ -55,6 +55,7 @@ jobs:
             output-pixel6-a15/config*
             output-pixel6-a15/SHA256SUMS
             output-pixel6-a15/*proof*
+            output-pixel6-a15/profile-*.json
             output-pixel6-a15/provenance.txt
             output-pixel6-a15/verification.json
             output-pixel6-a15/resolved-manifest.xml

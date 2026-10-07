@@ -6,6 +6,7 @@ WORK="${WORK:-$ROOT/work-pixel6-a15}"
 OUT="${OUT:-$ROOT/output-pixel6-a15}"
 SUKISU_REF=70fa0e092a2c81060823f8ae526eac14fdda2930
 SUSFS_REF=24743360ea08d98f6ad72b856851abed8de5854f
+BBG_REF=a54e0dc6cf0aff4dd87fec49644a02d2eb612905
 die() { echo "ERROR: $*" >&2; exit 1; }
 [[ ! -e "$WORK" && ! -e "$OUT" ]] || die 'work/output already exists'
 mkdir -p "$WORK" "$OUT"
@@ -21,6 +22,8 @@ git clone --branch builtin https://github.com/SukiSU-Ultra/SukiSU-Ultra.git Kern
 git -C KernelSU checkout --detach "$SUKISU_REF"
 git clone --branch gki-android14-6.1 https://github.com/ShirkNeko/susfs4ksu.git susfs4ksu
 git -C susfs4ksu checkout --detach "$SUSFS_REF"
+git clone https://github.com/vc-teahouse/Baseband-guard.git Baseband-guard
+git -C Baseband-guard checkout --detach "$BBG_REF"
 grep -qxF '#define SUSFS_VERSION "v2.3.0"' susfs4ksu/kernel_patches/include/linux/susfs.h
 cp -a KernelSU/kernel aosp/drivers/kernelsu
 printf '%s  %s\n' '21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9' "$RECIPE/compat/arch.h" | sha256sum --check --status
@@ -80,12 +83,15 @@ patch --dry-run --fuzz=0 -p1 -d aosp < "$RECIPE/susfs-raviole.patch"
 patch --fuzz=0 -p1 -d aosp < "$RECIPE/susfs-raviole.patch"
 cp susfs4ksu/kernel_patches/fs/susfs.c aosp/fs/
 cp susfs4ksu/kernel_patches/include/linux/susfs{,_def}.h aosp/include/linux/
+python3 "$RECIPE/apply-profile.py" aosp Baseband-guard "$OUT"
+python3 "$RECIPE/test-profile.py" aosp | tee "$OUT/profile-host-proof.txt"
 ! find aosp -name '*.rej' -print -quit | grep -q . || die 'rejected patch'
 cp "$RECIPE/susfs-raviole.patch" "$OUT/"
 BUILD_AOSP_KERNEL=1 ./build_raviole.sh --config=no_download_gki --config=no_download_gki_fips140 -- --dist_dir="$OUT/dist"
 [[ -s "$OUT/dist/Image" ]] || die 'no source Image in dist'
 aosp/scripts/extract-ikconfig "$OUT/dist/Image" > "$OUT/config"
 python3 "$RECIPE/verify.py" "$OUT" aosp
+python3 "$RECIPE/test-profile.py" aosp --system-map "$OUT/dist/System.map" | tee "$OUT/profile-compiled-map-proof.txt"
 cp "$OUT/dist/Image" "$OUT/Image.pre-kpm"
 cat > "$OUT/provenance.txt" <<EOF
 device=oriole
@@ -98,6 +104,9 @@ sukisu_arch_donor=42d7fda3d787b7df90fc440a50bb9c8216a3fdef:kernel/include/arch.h
 sukisu_arch_sha256=21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9
 susfs_commit=$SUSFS_REF
 susfs_version=v2.3.0
+bbg_commit=$BBG_REF
+profile=restricted-inspection-v1
+bbg_boot_recovery_guards=off
 kernel_config_check=PASS
 kpm_runtime=NOT_YET_TESTED
 physical_boot=NOT_YET_TESTED
