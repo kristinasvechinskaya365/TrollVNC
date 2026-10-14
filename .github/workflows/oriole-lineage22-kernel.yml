@@ -1,0 +1,115 @@
+name: Oriole Lineage 22.2 SukiSU KPM SUSFS 2.3
+on:
+  push:
+    branches: [work/oriole-lineage22-susfs23-20261014]
+    paths: ['oriole-lineage22/**', '.github/workflows/oriole-lineage22-kernel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: oriole-lineage22-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  port-audit:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Local contract and regression tests
+        run: python3 -m unittest discover -s oriole-lineage22 -p 'test_*.py' -v
+      - name: Validate pinned blu_spark source and exact SUSFS patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 oriole-lineage22/build.py port-audit "$RUNNER_TEMP/port-audit" 2>&1 | tee port-audit.log
+      - name: Preserve port evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oriole-source-port-audit-${{ github.sha }}
+          path: |
+            port-audit.log
+            ${{ runner.temp }}/port-audit/source-lock.json
+            ${{ runner.temp }}/port-audit/provider-removal.json
+            ${{ runner.temp }}/port-audit/port-audit.json
+          retention-days: 30
+          if-no-files-found: warn
+  kernel:
+    needs: port-audit
+    runs-on: ubuntu-22.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Free unused hosted-runner SDK space
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup
+          sudo docker image prune --all --force
+          df -h
+          python3 -c 'import shutil; free=shutil.disk_usage(".").free; print("free_bytes=",free); assert free >= 35*1024**3, "At least 35 GiB free is required for this kernel build"'
+      - name: Install kernel build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends repo git python3 patch binutils build-essential curl unzip zip xz-utils zstd cpio libssl-dev libelf-dev cmake ninja-build flex bison bc lz4
+      - name: Install matching KPM NDK
+        id: ndk
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779
+        with:
+          ndk-version: r29
+          add-to-path: false
+      - name: Prepare isolated pinned recipe
+        run: python3 oriole-lineage22/build.py prepare "$GITHUB_WORKSPACE/build-work" --variant blu-spark
+      - name: Build and verify KPM payload
+        env:
+          TARGET_COMPILE: ${{ steps.ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash build-work/recipe/pixel6-a15-qpr2/build-kpm.sh 2>&1 | tee kpm-build.log
+      - name: Compile blu_spark fork with existing SukiSU SUSFS and BBG profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash build-work/recipe/pixel6-a15-qpr2/build.sh 2>&1 | tee kernel-build.log
+      - name: Finalize KPM and independently verify final Image
+        id: final
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash build-work/recipe/pixel6-a15-qpr2/finalize-kpm.sh
+          python3 oriole-lineage22/build.py verify-output build-work/recipe/output-pixel6-a15 --variant blu-spark
+      - name: Upload final candidate only after validation
+        if: steps.final.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oriole-lineage22-kernel-candidate-NOT-FLASH-QUALIFIED-${{ github.sha }}
+          path: |
+            build-work/recipe/output-pixel6-a15/Image.gz
+            build-work/recipe/output-pixel6-a15/config*
+            build-work/recipe/output-pixel6-a15/SHA256SUMS
+            build-work/recipe/output-pixel6-a15/*proof*
+            build-work/recipe/output-pixel6-a15/*.json
+            build-work/recipe/output-pixel6-a15/provenance.txt
+            build-work/recipe/output-pixel6-a15/resolved-manifest.xml
+            build-work/recipe/output-pixel6-a15/kpm-image-info.txt
+            build-work/recipe/output-pixel6-a15/source-dist-before-kpm/System.map
+            build-work/source-lock.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Preserve build logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oriole-lineage22-build-logs-${{ github.sha }}
+          path: |
+            kernel-build.log
+            kpm-build.log
+            build-work/source-lock.json
+            build-work/recipe/output-pixel6-a15/*.json
+          retention-days: 30
+          if-no-files-found: warn
