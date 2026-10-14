@@ -3,6 +3,9 @@ on:
   push:
     branches: [work/oriole-lineage22-susfs23-20261014]
     paths: ['oriole-lineage22/**', '.github/workflows/oriole-lineage22-kernel.yml']
+  pull_request:
+    branches: [ci/pixel6-a15-sukisu-kpm-susfs23-20261007]
+    paths: ['oriole-lineage22/**', '.github/workflows/oriole-lineage22-kernel.yml']
   workflow_dispatch:
 permissions:
   contents: read
