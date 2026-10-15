@@ -78,6 +78,27 @@ def fetch(url: str, sha: str, dest: Path) -> None:
     if run(['git','rev-parse','HEAD'],dest,True) != sha:
         raise BuildError('Fetched commit differs from lock')
 
+# Netfilter source pairs collapse on case-insensitive macOS checkout volumes.
+CASE_DISTINCT_NETFILTER = (
+    ('xt_DSCP.c', 'xt_dscp.c'),
+    ('xt_HL.c', 'xt_hl.c'),
+    ('xt_RATEEST.c', 'xt_rateest.c'),
+    ('xt_TCPMSS.c', 'xt_tcpmss.c'),
+)
+
+def validate_case_sensitive_checkout(root: Path) -> None:
+    netfilter = root / 'net/netfilter'
+    if not netfilter.is_dir() or netfilter.is_symlink():
+        raise BuildError('Pinned Netfilter directory missing or unsafe')
+    for upper, lower in CASE_DISTINCT_NETFILTER:
+        a, b = netfilter / upper, netfilter / lower
+        if (not a.is_file() or not b.is_file() or a.is_symlink()
+                or b.is_symlink() or a.samefile(b)):
+            raise BuildError(
+                f'Case-folding kernel checkout lost independent {upper} / {lower}; '
+                'refetch the pinned tree on a case-sensitive Linux filesystem'
+            )
+
 def replace_once(text: str, old: str, new: str, label: str) -> str:
     if text.count(old) != 1:
         raise BuildError(f'{label}: expected exactly one anchor, got {text.count(old)}')
@@ -201,6 +222,7 @@ def port_audit(work: Path) -> None:
     donor = prepare(work,'blu-spark')
     source = work/'aosp'
     fetch(*SOURCES['blu_spark'],source)
+    validate_case_sensitive_checkout(source)
     write_json(work/'provider-removal.json',sanitize(source))
     run([sys.executable,str(donor/'oriole-lineage22/security_maintenance.py'),
          str(source),'--output',str(work/'security-maintenance.json'),'--apply'],work)
