@@ -19,6 +19,8 @@ BASE = '3c76c2d71bb32039037c6f5dc38b172fe4142bdb'
 BLU = '536518ba56c64865b05abce6618077d91d3ef07e'
 RECIPE = '6374b323b459b8be265fae28b897e1cb578daf67'
 ARCH_SHA256 = '21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9'
+MAINTENANCE_COMMAND = ('python3 "$ROOT/oriole-lineage22/security_maintenance.py" aosp '
+                       '--output "$OUT/security-maintenance.json" --apply')
 FEATURES = ('SUS_PATH','SUS_MOUNT','SUS_KSTAT','SPOOF_UNAME','ENABLE_LOG',
             'HIDE_KSU_SUSFS_SYMBOLS','SPOOF_CMDLINE_OR_BOOTCONFIG','OPEN_REDIRECT','SUS_MAP')
 REQUIRED = ['KSU','KPM','KALLSYMS','KALLSYMS_ALL','KSU_SUSFS','KSU_FEATURE_ADBROOT',
@@ -136,7 +138,7 @@ def transform(recipe: Path, variant: str) -> None:
     text=text.replace(BASE,BLU)
     text=replace_once(text,'python3 "$RECIPE/apply-kleaf-stamp.py" . "$OUT"',
         'python3 "$RECIPE/apply-kleaf-stamp.py" . "$OUT"\n'
-        'python3 "$ROOT/oriole-lineage22/build.py" sanitize aosp', 'provider replacement')
+        'python3 "$ROOT/oriole-lineage22/build.py" sanitize aosp\n' + MAINTENANCE_COMMAND, 'provider replacement')
     text=text.replace('platform=Android 15 QPR2 source target',
                       'platform=oriole LineageOS 22.2 experimental blu_spark port')
     p.write_text(text)
@@ -151,11 +153,15 @@ def prepare(work: Path, variant: str) -> Path:
     fetch(*SOURCES['recipe'],donor)
     target=donor/'oriole-lineage22';target.mkdir()
     shutil.copy2(__file__,target/'build.py')
+    if variant == 'blu-spark':
+        shutil.copy2(HERE/'security_maintenance.py',target/'security_maintenance.py')
     transform(donor/'pixel6-a15-qpr2',variant)
     write_json(work/'source-lock.json',{'variant':variant,'sources':SOURCES,
         'kernelpatch_commit':'e565c93ff6d0b992d9dfcbd43533a49d744a5f23',
         'root_uapi':5,'root_manager_version':40959,'susfs_version':'2.3.0',
         'features':REQUIRED,'framework_security_patch_level':'NOT_VERIFIED',
+        'required_source_maintenance':['CVE-2026-31431'] if variant == 'blu-spark' else [],
+        'security_coverage':'PARTIAL_SOURCE_ONLY; NOT A PATCH LEVEL CERTIFICATION',
         'a17_to_a15_device_compatibility':'NOT_TESTED'})
     return donor
 
@@ -196,6 +202,8 @@ def port_audit(work: Path) -> None:
     source = work/'aosp'
     fetch(*SOURCES['blu_spark'],source)
     write_json(work/'provider-removal.json',sanitize(source))
+    run([sys.executable,str(donor/'oriole-lineage22/security_maintenance.py'),
+         str(source),'--output',str(work/'security-maintenance.json'),'--apply'],work)
     for key, dest in [('sukisu','KernelSU'),('susfs','susfs4ksu'),('bbg','Baseband-guard')]:
         fetch(*SOURCES[key],work/dest)
     recipe = donor/'pixel6-a15-qpr2'
@@ -210,7 +218,8 @@ def port_audit(work: Path) -> None:
     write_json(work/'port-audit.json',{'source_integration':'PASS',
         'core_patch_dry_run':'PASS','profile_source_checks':'PASS',
         'integration_fragment_sha256':hashlib.sha256(fragment.encode()).hexdigest(),
-        'compiled':False,'device_tested':False,'source':BLU})
+        'compiled':False,'device_tested':False,'source':BLU,
+        'required_source_maintenance':json.loads((work/'security-maintenance.json').read_text())})
 
 def check_features(config: str) -> list[str]:
     actual={}
