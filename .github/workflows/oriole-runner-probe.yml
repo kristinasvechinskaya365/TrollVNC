@@ -1,3 +1,4 @@
+# Deliberate bounded allocation probe; no source checkout, artifacts or device data.
 name: Oriole runner allocation probe
 on:
   push:
