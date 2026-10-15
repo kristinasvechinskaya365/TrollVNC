@@ -14,6 +14,9 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 MANIFEST = '98c181d61f032a69c817835238cbb40fd049100e'
+# Android 15 BP1A.250505.005 stock raviole kernel-and-modules REFERENCE,
+# not the requested new blu_spark Image, module set or maintained kernel.
+REFERENCE_A15_PREBUILT = 'eddb1daf3ba7e38c2d9be1069f64fa234a1e5be8'
 PROJECTS = {
     'device/google/oriole': ('LineageOS/android_device_google_oriole', 'bec55ea9da934d3f0574392b809ebc3ccf34d33b'),
     'device/google/raviole': ('LineageOS/android_device_google_raviole', '4328bca33a7f40ee1ff8369e33b5fd9d5b18abb2'),
@@ -117,6 +120,7 @@ def source_snapshot(root: Path, *, verify_git=revparse) -> dict:
         'vendor_blobs_present':vendor.is_file() and not vendor.is_symlink(),
         'kernel_prebuilt_checkout_present':kernel_prebuilt.is_dir() and not kernel_prebuilt.is_symlink(),
         'kernel_prebuilt_sha':verify_git(kernel_prebuilt) if kernel_prebuilt.is_dir() else None,
+        'stock_2025_reference_prebuilt_commit':REFERENCE_A15_PREBUILT,
         'kernel_prebuilt_matched_to_custom_image':False,
         'actual_partition_payload_audited':False,
         'low_level_firmware_write_prohibited':sorted(LOW_LEVEL),
