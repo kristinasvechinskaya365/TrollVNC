@@ -76,7 +76,7 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(before,(self.root/'build.sh').read_bytes())
     def stack(self):return [x+'.img' for x in ('boot','vendor_boot','dtbo','vbmeta','vbmeta_system','vbmeta_vendor')]
     def test_low_level_firmware_rejected(self):
-        for item in ('abl.img','bl1_b.img','radio-slider.img','bootloader-slider.img','modem_a.img','gsa.img'):
+        for item in ('abl.img','bl1_b.img','radio-slider.img','bootloader-slider.img','modem_a.img','gsa.img','pvmfw.img','pvmfw_b.img'):
             with self.subTest(image=item),self.assertRaises(b.BuildError):b.audit_rom_manifest(self.stack()+[item])
     def test_unsafe_paths_rejected(self):
         for item in ('../boot.img','/boot.img'):

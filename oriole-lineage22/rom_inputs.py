@@ -24,7 +24,7 @@ PROJECTS = {
     'device/google/gs-common': ('LineageOS/android_device_google_gs-common', '24c5f5467ceb80acd1b28748a34ea48f018286ee'),
 }
 EXPECTED_MODULES = frozenset({'bcmdhd4389.ko', 'ftm5.ko', 'sec_touch.ko', 'st33spi.ko'})
-LOW_LEVEL = frozenset({'abl', 'bl1', 'bl2', 'bl31', 'gsa', 'ldfw', 'modem', 'pbl', 'tzsw', 'radio', 'bootloader'})
+LOW_LEVEL = frozenset({'abl', 'bl1', 'bl2', 'bl31', 'gsa', 'ldfw', 'modem', 'pbl', 'tzsw', 'radio', 'bootloader', 'pvmfw'})
 SHA = re.compile(r'[0-9a-f]{40}\Z')
 
 class InputError(RuntimeError):

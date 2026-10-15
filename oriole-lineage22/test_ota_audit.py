@@ -139,6 +139,12 @@ class OtaTests(unittest.TestCase):
         path,digest=self.ota(body);r=a.inspect_ota(path,digest)
         self.assertEqual(r['firmware_partitions'],['abl'])
         self.assertFalse(r['firmware_absent_from_partition_inventory'])
+    def test_pvmfw_is_sensitive_firmware_not_an_os_partition(self):
+        body,_=payload(parts=[part('boot'),part('pvmfw')])
+        path,digest=self.ota(body);result=a.inspect_ota(path,digest)
+        self.assertIn('pvmfw',result['firmware_partitions'])
+        self.assertFalse(result['firmware_absent_from_partition_inventory'])
+        self.assertFalse(result['flash_ready'])
     def test_unknown_partition_not_silently_allowed(self):
         body,_=payload(parts=[part('mystery')]);path,digest=self.ota(body)
         self.assertEqual(a.inspect_ota(path,digest)['unknown_partitions'],['mystery'])

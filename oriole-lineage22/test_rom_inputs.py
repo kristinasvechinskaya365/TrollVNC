@@ -50,6 +50,12 @@ class OrioleRomInputsTests(unittest.TestCase):
             self.assertFalse(report['vendor_blobs_present'])
             self.assertFalse(report['module_inventory']['modversion_crc_verified'])
             self.assertEqual(report['module_inventory']['required'],sorted(r.EXPECTED_MODULES))
+    def test_pvmfw_is_not_automatically_installable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);self.make_fixture(root)
+            report=r.source_snapshot(root,verify_git=self.git_reader)
+            self.assertIn('pvmfw',report['low_level_firmware_write_prohibited'])
+            self.assertFalse(report['retained_firmware_compatibility_proven'])
     def test_module_missing_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);self.make_fixture(root)

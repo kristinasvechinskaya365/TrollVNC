@@ -335,7 +335,7 @@ def verify_output(output: Path, variant: str) -> None:
     write_json(report_path,report)
 
 def audit_rom_manifest(names: list[str]) -> dict:
-    low={'abl','bl1','bl2','bl31','gsa','ldfw','modem','pbl','tzsw','bootloader','radio'}
+    low={'abl','bl1','bl2','bl31','gsa','ldfw','modem','pbl','tzsw','bootloader','radio','pvmfw'}
     normalized=set()
     for name in names:
         p=Path(name)

@@ -24,7 +24,7 @@ OS_PARTITIONS = frozenset(('boot','vendor_boot','dtbo','vbmeta','vbmeta_system',
     'vbmeta_vendor','system','system_ext','product','vendor','vendor_dlkm',
     'system_dlkm','odm','odm_dlkm'))
 BOOT_PARTITIONS = frozenset(('boot','vendor_boot','dtbo','vbmeta','vbmeta_system','vbmeta_vendor'))
-FIRMWARE = frozenset(('abl','bl1','bl2','bl31','gsa','ldfw','modem','pbl','tzsw','bootloader','radio'))
+FIRMWARE = frozenset(('abl','bl1','bl2','bl31','gsa','ldfw','modem','pbl','tzsw','bootloader','radio','pvmfw'))
 FULL_OPS = frozenset((0,1,6,7,8))
 MISSING = object()
 
