@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
       - name: Local contract and regression tests
         run: python3 -m unittest discover -s oriole-lineage22 -p 'test_*.py' -v
-      - name: Validate pinned blu_spark source and exact SUSFS patch
+      - name: Apply and test the complete pinned source integration
         shell: bash
         run: |
           set -euo pipefail
@@ -37,6 +37,8 @@ jobs:
             ${{ runner.temp }}/port-audit/source-lock.json
             ${{ runner.temp }}/port-audit/provider-removal.json
             ${{ runner.temp }}/port-audit/port-audit.json
+            ${{ runner.temp }}/port-audit/integration-evidence/
+            ${{ runner.temp }}/port-audit/integration-only.sh
           retention-days: 30
           if-no-files-found: warn
   kernel:
@@ -101,6 +103,7 @@ jobs:
             build-work/recipe/output-pixel6-a15/resolved-manifest.xml
             build-work/recipe/output-pixel6-a15/kpm-image-info.txt
             build-work/recipe/output-pixel6-a15/source-dist-before-kpm/System.map
+            build-work/recipe/output-pixel6-a15/source-dist-before-kpm/*symvers*
             build-work/source-lock.json
           retention-days: 30
           if-no-files-found: error
