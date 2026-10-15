@@ -1,3 +1,16 @@
+# Current executable checkpoint — 2026-10-15 UTC
+
+**This section supersedes older historical claims below.** Canonical source builds on corrected v2 and now includes two scoped source-maintenance fixes and a mandatory source-tree filesystem-integrity guard.
+
+- Real Linux pinned source audits succeeded through `ede749a02479c942c517eb1759ed2a7e61927472`, including the exact PREIMAGE-bound AEAD fixes for CVE-2026-31431 and CVE-2026-43077. These are only scoped source fixes, not comprehensive kernel/framework/vendor security maintenance.
+- M2 native smoke build `38666437571` failed at `xt_DSCP.o` because the macOS checkout was case-insensitive. Live read-only bridge receipt `oriole-case-collision-20261015T1345-f7a23d91` confirmed one case-folded file instead of both `xt_DSCP.c` and `xt_dscp.c`.
+- Required four independent source-file pairs are now checked at source-audit entry by `2dc8bbaaebc97406f9fa767d147fe7dac46dac6c` and tested by `4eb4ae00d1d4a0981fb07b0465c3ac7996cb39bb`. The previous macOS source audit must not be treated as proof of complete checkout integrity.
+- `124/124` host tests pass when supplied with the independently SHA-verified **historical** Pixel kernel as a fixture (this image is not the new requested build).
+- New self-hosted private M2 Linux Docker **case-sensitive-volume** source compilation was running at GitHub Actions run `38745677343`, job `116458561125`, when this checkpoint was authored. Do not assert success without an actual finished run and authenticated resulting Image.
+- Complete Google Kleaf/KPM/vendor modules build, real LineageOS 22.2 API35 product, signing, full payload/firmware auditing, physical recovery transport, backup and device qualification remain incomplete. Wi-Fi ADB must not be treated as Fastboot connectivity, and no installation has occurred.
+
+---
+
 # Continuation: binary identity, full source integration, and OTA audit
 
 ## Verified locally
