@@ -1,0 +1,16 @@
+# Deliberate bounded allocation probe; no source checkout, artifacts or device data.
+name: Oriole runner allocation probe
+on:
+  push:
+    branches: [work/oriole-lineage22-susfs23-20261014]
+    paths: ['.github/workflows/oriole-runner-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    steps:
+      - name: Prove runner allocation without checkout or downloads
+        run: printf 'ORIOLE_RUNNER_ALLOCATED=YES\n'
