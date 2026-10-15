@@ -18,6 +18,7 @@ HERE = Path(__file__).resolve().parent
 BASE = '3c76c2d71bb32039037c6f5dc38b172fe4142bdb'
 BLU = '536518ba56c64865b05abce6618077d91d3ef07e'
 RECIPE = '6374b323b459b8be265fae28b897e1cb578daf67'
+ARCH_SHA256 = '21951ac6769665243ce5962a8e55a54d01c9738eff1c3d3babbdd6dd8563cbb9'
 FEATURES = ('SUS_PATH','SUS_MOUNT','SUS_KSTAT','SPOOF_UNAME','ENABLE_LOG',
             'HIDE_KSU_SUSFS_SYMBOLS','SPOOF_CMDLINE_OR_BOOTCONFIG','OPEN_REDIRECT','SUS_MAP')
 REQUIRED = ['KSU','KPM','KALLSYMS','KALLSYMS_ALL','KSU_SUSFS','KSU_FEATURE_ADBROOT',
@@ -107,7 +108,6 @@ def sanitize(root: Path) -> dict:
     provider_re = re.compile(r'^(?:CONFIG_(?:KSU(?:_\w+)?|KPM)=|# CONFIG_(?:KSU(?:_\w+)?|KPM) is not set$)')
     result['old_root_config_removed'] = [line for line in lines if provider_re.match(line)]
     edits[config] = '\n'.join(line for line in lines if not provider_re.match(line))+'\n'
-    # Do not make a partial edit when an expected upstream anchor has changed.
     for path, text in edits.items():
         path.write_text(text)
     if provider.is_symlink():
@@ -137,7 +137,6 @@ def transform(recipe: Path, variant: str) -> None:
     text=replace_once(text,'python3 "$RECIPE/apply-kleaf-stamp.py" . "$OUT"',
         'python3 "$RECIPE/apply-kleaf-stamp.py" . "$OUT"\n'
         'python3 "$ROOT/oriole-lineage22/build.py" sanitize aosp', 'provider replacement')
-    # Kernel identity must describe the actual fork, never pretend to be stock.
     text=text.replace('platform=Android 15 QPR2 source target',
                       'platform=oriole LineageOS 22.2 experimental blu_spark port')
     p.write_text(text)
@@ -171,6 +170,26 @@ def integration_fragment(text: str) -> str:
     return text[a:b]
 
 
+def verify_input(path: Path, expected_sha256: str) -> None:
+    """Verify a small pinned source input without platform-specific checksum tools."""
+    if not re.fullmatch(r'[0-9a-f]{64}', expected_sha256):
+        raise BuildError('Expected input digest must be a full lowercase SHA-256')
+    if path.is_symlink() or not path.is_file() or not 0 < path.stat().st_size <= 8*1024*1024:
+        raise BuildError('Pinned source input is missing, symlinked, empty or oversized')
+    if hashlib.sha256(path.read_bytes()).hexdigest() != expected_sha256:
+        raise BuildError('Pinned source input SHA-256 mismatch')
+
+
+def portable_source_fragment(text: str) -> str:
+    """Replace only the reviewed GNU checksum invocation; retain the donor hash."""
+    fragment = integration_fragment(text)
+    old = ("printf '%s  %s\\n' '" + ARCH_SHA256 +
+           "' \"$RECIPE/compat/arch.h\" | sha256sum --check --status")
+    new = ('python3 "$ROOT/oriole-lineage22/build.py" verify-input '
+           '"$RECIPE/compat/arch.h" --sha256 ' + ARCH_SHA256)
+    return replace_once(fragment, old, new, 'portable pinned arch.h verification')
+
+
 def port_audit(work: Path) -> None:
     """Exercise all source integrations before the full 80-project build sync."""
     donor = prepare(work,'blu-spark')
@@ -180,7 +199,7 @@ def port_audit(work: Path) -> None:
     for key, dest in [('sukisu','KernelSU'),('susfs','susfs4ksu'),('bbg','Baseband-guard')]:
         fetch(*SOURCES[key],work/dest)
     recipe = donor/'pixel6-a15-qpr2'
-    fragment = integration_fragment((recipe/'build.sh').read_text())
+    fragment = portable_source_fragment((recipe/'build.sh').read_text())
     audit_out = work/'integration-evidence'
     audit_out.mkdir()
     script = work/'integration-only.sh'
@@ -231,7 +250,6 @@ def binary_identity(image: bytes, variant: str) -> str:
     sources = {'baseline':BASE,'blu-spark':BLU}
     if variant not in sources:
         raise BuildError('Unknown kernel variant')
-    # Source identity comes from the binary, never the requested output label.
     matches = set(re.findall(rb'Linux version (6\.1\.[0-9]+-[^ \x00]{1,160}) ',image))
     if len(matches)!=1:
         raise BuildError('Missing or ambiguous Linux release banner')
@@ -244,7 +262,6 @@ def binary_identity(image: bytes, variant: str) -> str:
 
 def verify_output(output: Path, variant: str) -> None:
     report_path = output/'candidate-status.json'
-    # A failed recheck must not leave a stale PASS report.
     report_path.unlink(missing_ok=True)
     image_path = output/'Image'
     if not image_path.is_file() or not 0<image_path.stat().st_size<=128*1024*1024:
@@ -309,6 +326,8 @@ def main() -> int:
     p.add_argument('--variant',choices=('baseline','blu-spark'),default='blu-spark')
     p=sub.add_parser('port-audit');p.add_argument('work',type=Path)
     p=sub.add_parser('sanitize');p.add_argument('root',type=Path)
+    p=sub.add_parser('verify-input');p.add_argument('path',type=Path)
+    p.add_argument('--sha256',required=True)
     p=sub.add_parser('verify-output');p.add_argument('output',type=Path)
     p.add_argument('--variant',choices=('baseline','blu-spark'),default='blu-spark')
     a=parser.parse_args()
@@ -316,6 +335,7 @@ def main() -> int:
         if a.cmd=='prepare': print(prepare(a.work.resolve(),a.variant))
         elif a.cmd=='port-audit':port_audit(a.work.resolve())
         elif a.cmd=='sanitize':print(json.dumps(sanitize(a.root),indent=2))
+        elif a.cmd=='verify-input':verify_input(a.path,a.sha256)
         elif a.cmd=='verify-output':verify_output(a.output,a.variant)
         return 0
     except (BuildError,subprocess.CalledProcessError,OSError,ValueError) as e:
