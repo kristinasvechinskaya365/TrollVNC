@@ -11,7 +11,8 @@ m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 # Synthetic input verifies fail-closed transformations. The real pinned source
 # must separately pass its full SHA-256 gate on the source-audit host.
 FIXTURE=('\tunsigned int i, as = crypto_aead_authsize(tfm);\n'
-         '\tstruct af_alg_tsgl *tsgl, *tmp;\n'+m.START+
+         '\tstruct af_alg_tsgl *tsgl, *tmp;\n'+
+         '\t\tif (used < less) {\n'+m.START+
          '\tlegacy body sg_chain(input, output);\n'+m.END+
          '\taead_request_set_crypt(&areq->cra_u.aead_req, rsgl_src,\n'
          '\t\t\t       areq->first_rsgl.sgl.sg, used, ctx->iv);\n').encode()
@@ -26,6 +27,8 @@ class MaintenanceTests(unittest.TestCase):
         self.assertIn('aead_request_set_crypt(&areq->cra_u.aead_req, tsgl_src,',new)
         self.assertNotIn('sg_chain(',new)
         self.assertNotIn('processed - as',new)
+        self.assertIn('if (used < less + (ctx->enc ? 0 : as))',new)
+        self.assertNotIn('if (used < less) {',new)
     def test_exported_helpers_keep_arity(self):
         new=self.apply_fixture()
         self.assertIn('af_alg_count_tsgl(sk, processed, 0)',new)
@@ -33,7 +36,7 @@ class MaintenanceTests(unittest.TestCase):
     def test_bad_preimage_rejected(self):
         with self.assertRaises(m.MaintenanceError):m.transform(FIXTURE)
     def test_duplicate_anchor_rejected(self):
-        for anchor in (m.START,m.END,'\tstruct af_alg_tsgl *tsgl, *tmp;\n'):
+        for anchor in (m.START,m.END,'\tstruct af_alg_tsgl *tsgl, *tmp;\n','\t\tif (used < less) {\n'):
             with self.subTest(anchor=anchor),self.assertRaises(m.MaintenanceError):
                 self.apply_fixture(FIXTURE+anchor.encode())
     def test_missing_anchor_rejected(self):

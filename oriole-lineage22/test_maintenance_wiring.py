@@ -31,7 +31,7 @@ class MaintenanceWiringTests(unittest.TestCase):
                 self.assertEqual(copied.exists(),variant=='blu-spark')
                 if copied.exists():self.assertEqual(copied.read_bytes(),(b.HERE/'security_maintenance.py').read_bytes())
                 lock=json.loads((root/'source-lock.json').read_text())
-                self.assertEqual(lock['required_source_maintenance'],['CVE-2026-31431'] if variant=='blu-spark' else [])
+                self.assertEqual(lock['required_source_maintenance'],['CVE-2026-31431','CVE-2026-43077'] if variant=='blu-spark' else [])
                 self.assertIn('NOT A PATCH LEVEL CERTIFICATION',lock['security_coverage'])
     def test_source_audit_refuses_failed_maintenance(self):
         with tempfile.TemporaryDirectory() as tmp:

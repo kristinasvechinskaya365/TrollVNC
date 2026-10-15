@@ -160,7 +160,7 @@ def prepare(work: Path, variant: str) -> Path:
         'kernelpatch_commit':'e565c93ff6d0b992d9dfcbd43533a49d744a5f23',
         'root_uapi':5,'root_manager_version':40959,'susfs_version':'2.3.0',
         'features':REQUIRED,'framework_security_patch_level':'NOT_VERIFIED',
-        'required_source_maintenance':['CVE-2026-31431'] if variant == 'blu-spark' else [],
+        'required_source_maintenance':['CVE-2026-31431','CVE-2026-43077'] if variant == 'blu-spark' else [],
         'security_coverage':'PARTIAL_SOURCE_ONLY; NOT A PATCH LEVEL CERTIFICATION',
         'a17_to_a15_device_compatibility':'NOT_TESTED'})
     return donor

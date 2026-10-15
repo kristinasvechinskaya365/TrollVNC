@@ -9,6 +9,7 @@ from pathlib import Path
 BASE = '536518ba56c64865b05abce6618077d91d3ef07e'
 UPSTREAM = 'a664bf3d603dc3bdcf9ae47cc21e0daec706d7a5'
 STABLE = '961cfa271a918ad4ae452420e7c303149002875b'
+RX_FIX = '3d14bd48e3a77091cbce637a12c2ae31b4a1687c'  # CVE-2026-43077
 SOURCE_SHA256 = 'd7235fb0e2966e17fa9b2777e813e67081b051a7aa1f00c4c0894cbb20e0d832'
 SOURCE_PATH = 'crypto/algif_aead.c'
 START = '\tprocessed = used + ctx->aead_assoclen;\n'
@@ -60,6 +61,8 @@ def transform(data: bytes) -> bytes:
     text = text[:start] + REPLACEMENT + text[end:]
     text = once(text, 'aead_request_set_crypt(&areq->cra_u.aead_req, rsgl_src,',
                 'aead_request_set_crypt(&areq->cra_u.aead_req, tsgl_src,')
+    text = once(text, '\t\tif (used < less) {\n',
+                '\t\tif (used < less + (ctx->enc ? 0 : as)) {\n')
     if 'sg_chain(' in text or 'processed - as' in text:
         raise MaintenanceError('Legacy tag/output chain remains')
     return text.encode('utf-8')
@@ -74,7 +77,8 @@ def maintain(root: Path, output: Path, apply: bool = False) -> dict:
     old = path.read_bytes()
     new = transform(old)
     report = {
-        'cve': 'CVE-2026-31431', 'base': BASE, 'upstream': UPSTREAM,
+        'cve': 'CVE-2026-31431', 'additional_cve': 'CVE-2026-43077',
+        'rx_fix': RX_FIX, 'base': BASE, 'upstream': UPSTREAM,
         'stable_reference': STABLE, 'path': SOURCE_PATH,
         'preimage_sha256': hashlib.sha256(old).hexdigest(),
         'postimage_sha256': hashlib.sha256(new).hexdigest(),
@@ -82,7 +86,7 @@ def maintain(root: Path, output: Path, apply: bool = False) -> dict:
         'adaptation': 'Retain Android null-cipher AAD copy and original exported AF_ALG helper signatures; pass zero offsets.',
         'compiled': False, 'device_tested': False,
         'security_patch_level_claim': None,
-        'coverage': 'One source fix only; full kernel/framework/vendor bulletin coverage remains unaudited.'
+        'coverage': 'Two scoped AEAD source fixes only; other related crypto follow-ups and framework/vendor bulletins remain unaudited.'
     }
     if apply:
         # Refuse in-place changes to hard-linked source snapshots.
