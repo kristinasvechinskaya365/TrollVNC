@@ -313,91 +313,7 @@ def verify_source_smoke(output: Path) -> None:
     for name in DISABLED:
         if f'# CONFIG_{name} is not set' not in lines:
             raise BuildError(f'Unsafe enabled configuration: {name}')
-    lsm = re.findall(rb'^CONFIG_LSM="([^"\n]+)"    report_path = output/'candidate-status.json'
-    report_path.unlink(missing_ok=True)
-    image_path = output/'Image'
-    if not image_path.is_file() or not 0<image_path.stat().st_size<=128*1024*1024:
-        raise BuildError('Final Image missing or exceeds bounded size')
-    image=image_path.read_bytes()
-    release=binary_identity(image,variant)
-    config=embedded_config(image)
-    check_features(config.decode('ascii'))
-    for name in DISABLED:
-        if f'# CONFIG_{name} is not set' not in config.decode('ascii').splitlines():
-            raise BuildError(f'CONFIG_{name} must remain disabled')
-    lsm=re.findall(rb'^CONFIG_LSM="([^"\n]+)"$',config,re.M)
-    if len(lsm)!=1 or not {b'selinux',b'baseband_guard'}<=set(lsm[0].split(b',')):
-        raise BuildError('SELinux/BBG LSM registration missing')
-    for name in ('config','config.post-kpm'):
-        if (output/name).read_bytes()!=config:
-            raise BuildError(f'{name} differs from actual embedded configuration')
-    try:
-        with gzip.open(output/'Image.gz','rb') as stream:
-            compressed_image=stream.read(len(image)+1)
-        if compressed_image!=image:
-            raise BuildError('Compressed output differs from final Image')
-    except (OSError,EOFError,zlib.error) as e:
-        raise BuildError(f'Invalid compressed kernel: {e}') from e
-    info=(output/'kpm-image-info.txt').read_text().splitlines()
-    if info!=['patched=true','version=0xd00'] or b'KPM_FAR_BRANCH_VENEER' not in image:
-        raise BuildError('KPM postpatch evidence or binary marker missing')
-    mapfile=output/'source-dist-before-kpm/System.map'
-    names={x.split()[-1] for x in mapfile.read_text().splitlines() if x.split()}
-    if not set(BRIDGES+('susfs_init','bbg_init'))<=names:
-        raise BuildError('Required compiled bridge/initialization symbols missing')
-    report={'device':'oriole','target':'LineageOS 22.2 / Android 15','variant':variant,
-        'kernel_release':release,'kernel_build':'PASS','required_features':REQUIRED,
-        'embedded_config_sha256':hashlib.sha256(config).hexdigest(),
-        'sha256_Image':hashlib.sha256(image).hexdigest(),
-        'rom_built':False,'rom_module_compatibility':'NOT_TESTED',
-        'security_patch_coverage':'NOT_AUDITED','starting_firmware_compatibility':'NOT_TESTED',
-        'physical_boot':'NOT_TESTED','flash_ready':False,
-        'note':'Binary consistency check, not a cryptographic proof of source provenance or a matched ROM.'}
-    write_json(report_path,report)
-
-def audit_rom_manifest(names: list[str]) -> dict:
-    low={'abl','bl1','bl2','bl31','gsa','ldfw','modem','pbl','tzsw','bootloader','radio','pvmfw'}
-    normalized=set()
-    for name in names:
-        p=Path(name)
-        if p.is_absolute() or '..' in p.parts:raise BuildError('Unsafe image path')
-        stem=p.name.removesuffix('.img')
-        if stem.endswith(('_a','_b')):stem=stem[:-2]
-        normalized.add(stem)
-    blocked=sorted(n for n in normalized if n in low or n.startswith(('bootloader-','radio-')))
-    if blocked:raise BuildError('Firmware-preserving bundle contains low-level writes: '+','.join(blocked))
-    required={'boot','vendor_boot','dtbo','vbmeta','vbmeta_system','vbmeta_vendor'}
-    if not required <= normalized:raise BuildError('Missing matched boot-stack components')
-    return {'low_level_firmware_present':False,'flash_ready':False,
-            'payload_manifest_inspection_still_required':True}
-
-def main() -> int:
-    parser=argparse.ArgumentParser(description=__doc__)
-    sub=parser.add_subparsers(dest='cmd',required=True)
-    p=sub.add_parser('prepare');p.add_argument('work',type=Path)
-    p.add_argument('--variant',choices=('baseline','blu-spark'),default='blu-spark')
-    p=sub.add_parser('port-audit');p.add_argument('work',type=Path)
-    p=sub.add_parser('sanitize');p.add_argument('root',type=Path)
-    p=sub.add_parser('verify-input');p.add_argument('path',type=Path)
-    p.add_argument('--sha256',required=True)
-    p=sub.add_parser('verify-source-smoke');p.add_argument('output',type=Path)
-    p=sub.add_parser('verify-output');p.add_argument('output',type=Path)
-    p.add_argument('--variant',choices=('baseline','blu-spark'),default='blu-spark')
-    a=parser.parse_args()
-    try:
-        if a.cmd=='prepare': print(prepare(a.work.resolve(),a.variant))
-        elif a.cmd=='port-audit':port_audit(a.work.resolve())
-        elif a.cmd=='sanitize':print(json.dumps(sanitize(a.root),indent=2))
-        elif a.cmd=='verify-input':verify_input(a.path,a.sha256)
-        elif a.cmd=='verify-source-smoke':verify_source_smoke(a.output)
-        elif a.cmd=='verify-output':verify_output(a.output,a.variant)
-        return 0
-    except (BuildError,subprocess.CalledProcessError,OSError,ValueError) as e:
-        print(f'BUILD FAILED: {e}',file=sys.stderr)
-        return 1
-
-if __name__=='__main__':sys.exit(main())
-, config, re.M)
+    lsm = re.findall(rb'^CONFIG_LSM="([^"\n]+)"$', config, re.M)
     if len(lsm) != 1 or not {b'selinux', b'baseband_guard'} <= set(lsm[0].split(b',')):
         raise BuildError('SELinux and BBG must appear in the kernel LSM list')
     names = set()
@@ -488,6 +404,7 @@ def main() -> int:
     p=sub.add_parser('sanitize');p.add_argument('root',type=Path)
     p=sub.add_parser('verify-input');p.add_argument('path',type=Path)
     p.add_argument('--sha256',required=True)
+    p=sub.add_parser('verify-source-smoke');p.add_argument('output',type=Path)
     p=sub.add_parser('verify-output');p.add_argument('output',type=Path)
     p.add_argument('--variant',choices=('baseline','blu-spark'),default='blu-spark')
     a=parser.parse_args()
@@ -496,6 +413,7 @@ def main() -> int:
         elif a.cmd=='port-audit':port_audit(a.work.resolve())
         elif a.cmd=='sanitize':print(json.dumps(sanitize(a.root),indent=2))
         elif a.cmd=='verify-input':verify_input(a.path,a.sha256)
+        elif a.cmd=='verify-source-smoke':verify_source_smoke(a.output)
         elif a.cmd=='verify-output':verify_output(a.output,a.variant)
         return 0
     except (BuildError,subprocess.CalledProcessError,OSError,ValueError) as e:
